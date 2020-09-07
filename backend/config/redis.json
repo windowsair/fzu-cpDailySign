@@ -1,0 +1,21 @@
+{
+    "redis-session-setting": {
+        "host": "127.0.0.1",
+        "port": 6379,
+        "#password": "密码为空时，应该注释掉password项",
+        "db": 0
+    },
+    "redis-user-setting": {
+        "host": "127.0.0.1",
+        "port": 6379,
+        "#password": "密码为空时，应该注释掉password项",
+        "db": 1
+    },
+    "redis-log-setting": {
+        "host": "127.0.0.1",
+        "port": 6379,
+        "#password": "密码为空时，应该注释掉password项",
+        "db": 2
+    },
+    "session-secrect": "Tb2A7^dvZvcN!8Woy@qzbozQ"
+}
