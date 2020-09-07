@@ -75,7 +75,52 @@ async function qmsgSend(key, msg) {
                             state = { code: -1, msg: 'Qmsg的KEY填写错误' }
                             break
                         default:
-                            state = { code: -1, msg: response.data.errmsg }
+                            state = { code: -1, msg: response.data.reason }
+                    }
+                }
+                catch (err) {
+                    state = { code: -1, msg: '系统错误' }
+                }
+
+                resolve(state)
+            })
+            .catch(error => {
+                console.log(error)
+                resolve({ code: -1, msg: '请求失败' })
+            })
+    })
+}
+
+
+/**
+ * iOS Bark 消息推送
+ * 
+ * @param {string} key 
+ * @param {string} title
+ * @param {string} msg 
+ */
+async function barkSend(key, title, msg){
+    let url = `https://api.day.app/${key}/${title}/${msg}`
+    url = encodeURI(url)
+    let config = {
+        method: 'post',
+        url: url,
+      }
+      
+      return new Promise(resolve => {
+        axios(config)
+            .then(response => {
+                let state = { code: 0, msg: 'OK' }
+                try {
+                    const errno = response.data.code
+                    switch (errno) {
+                        case 200:
+                            break
+                        case 400:
+                            state = { code: -1, msg: 'Bark的KEY填写错误' }
+                            break
+                        default:
+                            state = { code: -1, msg: response.data.message }
                     }
                 }
                 catch (err) {
@@ -121,6 +166,8 @@ async function notificationTest(redisClient, userID, type, apiKey) {
         case 'qmsg':
             result = await qmsgSend(apiKey, '这是一条测试内容')
             break
+        case 'bark':
+            result = await barkSend(apiKey, '测试', '这是一条测试内容')
         default:
             result = { code: -1, msg: '请求类型不正确' }
     }
