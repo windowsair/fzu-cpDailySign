@@ -38,7 +38,7 @@
 </template>
 
 <script>
-import { Message } from "element-ui";
+import { Message } from 'element-ui'
 
 export default {
   data() {
@@ -48,22 +48,22 @@ export default {
 
       // 主要表单项
       phoneForm: {
-        phone: "",
-        cap: "",
-        studentID: "",
+        phone: '',
+        cap: '',
+        studentID: '',
       },
       phoneRule: {
         phone: [
           {
             required: true,
-            message: "请输入今日校园绑定的手机",
-            trigger: "blur",
+            message: '请输入今日校园绑定的手机',
+            trigger: 'blur',
           },
           {
             min: 8,
             max: 12,
-            message: "长度在 8 到 12 个字符",
-            trigger: "blur",
+            message: '长度在 8 到 12 个字符',
+            trigger: 'blur',
           },
         ],
       },
@@ -71,136 +71,136 @@ export default {
         cap: [
           {
             required: true,
-            message: "请输入验证码",
-            trigger: "blur",
+            message: '请输入验证码',
+            trigger: 'blur',
           },
           {
             min: 4,
             max: 6,
-            message: "长度在 4 到 6 个字符",
-            trigger: "blur",
+            message: '长度在 4 到 6 个字符',
+            trigger: 'blur',
           },
         ],
       },
       capInputDisable: true,
-      lastPhone: "",
+      lastPhone: '',
       sendStatus: 0, // 0 => 未发送  1 => 已发送
       sendBtnDisable: false, // 发送验证码的按钮
       countTime: 60, // 倒计时时间
-    };
+    }
   },
   mounted() {
     if (localStorage.phone && localStorage.studentID) {
       this.phoneForm = {
         phone: localStorage.phone,
-        cap: "",
+        cap: '',
         studentID: localStorage.studentID,
-      };
+      }
     }
   },
   methods: {
     showDialog() {
-      this.dialogEnable = true;
+      this.dialogEnable = true
     },
     closeDialog() {
-      this.dialogEnable = false;
+      this.dialogEnable = false
     },
     sendPhone() {
-      this.$refs["phoneForm"].validate((valid) => {
+      this.$refs['phoneForm'].validate((valid) => {
         if (valid) {
           // 相关组件状态设置
-          this.sendBtnDisable = true;
-          this.countDown();
-          this.capInputDisable = false;
+          this.sendBtnDisable = true
+          this.countDown()
+          this.capInputDisable = false
 
           // 请求开始
-          this.phoneForm.studentID = this.$store.state.studentID;
+          this.phoneForm.studentID = this.$store.state.studentID
           this.$axios
-            .post("/api/verifyPhone", this.$qs.stringify(this.phoneForm))
-            .then((res) => {
-              let data = res.data;
+            .post('/api/verifyPhone', this.$qs.stringify(this.phoneForm))
+            .then(res => {
+              let data = res.data
               if (data.code != 0) {
                 Message({
                   message: data.msg,
-                  type: "error",
+                  type: 'error',
                   duration: 0,
                   showClose: true,
-                });
+                })
               } else {
                 Message({
-                  message: "成功发送验证码",
-                  type: "success",
+                  message: '成功发送验证码',
+                  type: 'success',
                   duration: 1500,
-                });
+                })
               }
             })
             .catch((err) => {
-              err;
-            });
+              console.log(err)
+            })
         } else {
-          this.capInputDisable = true;
+          this.capInputDisable = true
         }
-      });
+      })
     },
     verifyCap() {
-      this.$refs["capForm"].validate((valid) => {
+      this.$refs['capForm'].validate((valid) => {
         if (valid) {
-          this.dialogLoading = true;
+          this.dialogLoading = true
 
           // 请求开始
-          this.phoneForm.studentID = this.$store.state.studentID;
+          this.phoneForm.studentID = this.$store.state.studentID
           this.$axios
-            .post("/api/verifyMsgCode", this.$qs.stringify(this.phoneForm))
+            .post('/api/verifyMsgCode', this.$qs.stringify(this.phoneForm))
             .then((res) => {
-              this.dialogLoading = false;
-              let data = res.data;
+              this.dialogLoading = false
+              let data = res.data
               if (data.code != 0) {
                 Message({
                   message: data.msg,
-                  type: "error",
+                  type: 'error',
                   duration: 0,
                   showClose: true,
-                });
+                })
               } else {
-                this.dialogLoading = false;
+                this.dialogLoading = false
                 Message({
-                  message: "成功认证",
-                  type: "success",
+                  message: '成功认证',
+                  type: 'success',
                   duration: 1500,
-                });
+                })
 
-                this.closeDialog();
+                this.closeDialog()
               }
             })
             .catch((error) => {
-              console.log(error);
-            });
+              console.log(error)
+            })
         } else {
-          return false;
+          return false
         }
-      });
+      })
     },
     countDown() {
       let clock = window.setInterval(() => {
-        this.countTime--;
+        this.countTime--
         if (this.countTime < 0) {
           // 当倒计时小于0时清除定时器
-          window.clearInterval(clock);
-          this.sendBtnDisable = false;
-          this.countTime = 60;
+          window.clearInterval(clock)
+          this.sendBtnDisable = false
+          this.countTime = 60
         }
-      }, 1000);
+      }, 1000)
     },
   },
   computed: {
     capPlaceholder: function () {
-      return this.capInputDisable ? "请先填写手机号码" : "输入收到的验证码";
+      return this.capInputDisable ? '请先填写手机号码' : '输入收到的验证码'
     },
     sendBtnMsg: function () {
-      return this.sendBtnDisable ? `${this.countTime}秒后发送` : "发送";
+      return this.sendBtnDisable ? `${this.countTime}秒后发送` : '发送'
     },
   },
-};
+}
 </script>
 
 <style>

@@ -521,6 +521,84 @@ app.post('/api/noticeTest', (req, res) => {
 
     mainTask()
 
+})
+
+
+
+
+app.post('/api/changeNotice', (req, res) => {
+    let response = { code: 0, msg: 'ok' }
+    try {
+        if (req.session.login != true) {
+            response = { code: -1, msg: '您还未登录!' }
+            res.send(response)
+            return
+        }
+    } catch (error) {
+        response = { code: -1, msg: '您还未登录!' }
+        res.send(response)
+        return
+    }
+
+    let parameter = new Parameter({
+        validateRoot: true,
+    })
+
+    let rule = {
+        studentID: { type: 'string', min: 8, max: 11 },
+        apiKey: { type: 'string', min:8},
+        type: ['serverChan', 'qmsg', 'bark']
+    }
+
+    let errors = parameter.validate(rule, req.body)
+
+    if (errors != undefined) {
+        response.code = 1
+        response.msg = '参数不正确'
+        res.send(response)
+        return
+    }
+
+
+    if (req.session.studentID != req.body.studentID) {
+        response = { code: 2, msg: '账户不正确' }
+        res.send(response)
+        return
+    }
+
+    let userID = 'user:' + req.body.studentID
+
+    async function mainTask() {
+        const notification = {
+            type: req.body.type,
+            apiKey: req.body.apiKey
+        }
+
+        let client = new RedisOP(redisUserClient)
+        await client.setValue(userID, notification)
+
+        // let userNotice = await getUserNoticeType(redisUserClient, '')
+        // if (userNotice.code != 0) {
+        //     res.send(userNotice)
+        //     return
+        // }
+
+
+        const type = notification.type
+        const apiKey = notification.apiKey
+        let testResult = await notificationTest(redisUserClient, '', type, apiKey)
+
+        if (testResult.code != 0) {
+            res.send(testResult)
+            return
+        }
+
+        res.send(response)
+
+    }
+
+    mainTask()
+
 
 
 

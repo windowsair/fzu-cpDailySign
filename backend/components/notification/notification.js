@@ -168,6 +168,7 @@ async function notificationTest(redisClient, userID, type, apiKey) {
             break
         case 'bark':
             result = await barkSend(apiKey, '测试', '这是一条测试内容')
+            break
         default:
             result = { code: -1, msg: '请求类型不正确' }
     }

@@ -6,6 +6,17 @@
 # 介绍
 fzu-cpDailySign 是带有基本前后端的今日校园签到测试工具:wink:
 
+> 仅需两步，快速开始签到测试👇
+
+1. 注册后验证手机
+
+![step1](https://user-images.githubusercontent.com/17078589/92498365-1d76da80-f22d-11ea-9ed6-12ba624ebffd.png)
+
+
+2. 修改通知方式:
+
+![step2](https://user-images.githubusercontent.com/17078589/92497907-890c7800-f22c-11ea-92fa-cb55dfb2c567.png)
+
 # 功能
 
 > 本项目仍在开发中，尚未用于生产.
