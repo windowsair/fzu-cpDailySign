@@ -23,7 +23,7 @@ export default {
   data() {
     return {
       test: true,
-    };
+    }
   },
   methods:{
     closeDialog(){

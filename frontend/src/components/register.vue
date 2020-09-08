@@ -133,7 +133,7 @@ export default {
       this.capUrl = `${rawCapUrl}?${num}` 
     },
   },
-};
+}
 </script>
 
 <style>

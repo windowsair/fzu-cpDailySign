@@ -7,7 +7,7 @@
         <i class="el-icon-phone el-icon--right"></i>
       </el-button>
 
-      <el-button type="info" round style="margin-left: 10px">
+      <el-button type="info" round @click="showDialogNotification" style="margin-left: 10px">
         通知方式
         <i class="el-icon-message el-icon--right"></i>
       </el-button>
@@ -49,6 +49,7 @@
 
 
     <verifyPhone ref="verifyPhone"/>
+    <notification ref="notification"/>
 
 
     
@@ -56,11 +57,13 @@
 </template>
 
 <script>
-import verifyPhone from "./verifyPhone.vue";
+import verifyPhone from './verifyPhone.vue'
+import notification from './notification.vue'
 
 export default {
   components: {
     verifyPhone,
+    notification
   },
   data() {
     return {
@@ -71,11 +74,14 @@ export default {
     showDialogPhone() {
       this.$refs.verifyPhone.showDialog() // 应该有更好的方法
     },
+    showDialogNotification() {
+      this.$refs.notification.showDialog()
+    },
     logOut(){
         this.$store.commit('LOGOUT')
     }
   },
-};
+}
 
 
 </script>

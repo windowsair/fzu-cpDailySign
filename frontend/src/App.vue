@@ -197,7 +197,7 @@ body {
 .el-dialog.custom-dialog {
   width: 50%;
 }
-@media screen and (max-width: 752px) {
+@media screen and (max-width: 780px) {
   .el-dialog.custom-dialog {
     width: 70%;
   }
