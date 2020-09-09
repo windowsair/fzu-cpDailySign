@@ -36,7 +36,7 @@ class AESCrypto {
         iv = Buffer.from(key, 'utf8') || iv;
 
         let cipher = crypto.createCipheriv('aes-128-cbc', key, iv)
-        cipher.setAutoPadding(true) // Explicitly enable PKCS5 padding
+        cipher.setAutoPadding(true) // 显式启用PKCS5 padding
         let encrypted = cipher.update(data, 'utf8', 'base64')
         encrypted += cipher.final('base64')
 

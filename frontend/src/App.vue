@@ -12,7 +12,7 @@
       </div>
     </div>
     <div id="app">
-      <div class="register-content">
+      <div class="register-content" id="main-content">
         <div class="register-guide">
           <h3>{{welcomMsg()}}</h3>
         </div>
@@ -122,10 +122,7 @@ body {
   overflow: hidden;
   zoom: 1;
 }
-.el-loading-parent--relative .register-content {
-  /* 避免全局加载出现时位置改变 */
-  margin-top: -5px;
-}
+
 
 @media screen and (max-height: 752px) {
   .register-content {

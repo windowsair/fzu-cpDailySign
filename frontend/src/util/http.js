@@ -18,7 +18,8 @@ let loadingInstance
 axios.interceptors.request.use(
     config => {
         loadingInstance = Loading.service({
-            text: '请稍后...'
+            text: '请稍后...',
+            target: '#main-content'
         })
         return config
     },

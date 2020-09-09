@@ -85,6 +85,39 @@ class RedisOP {
         })
     }
 
+    /**
+     * 获取list类型key中指定范围的list
+     * 
+     * @param {string} key 
+     * @param {number} start 
+     * @param {number} end 
+     */
+    getListFromRange(key, start, end){
+        return new Promise((resolve, reject) => {
+            this.#instance.lrange(key, start, end, (err, result) => {
+                if (err) reject(err)
+                else
+                    resolve(result)
+            })
+        })
+    }
+
+    /**
+     * 将数据添加到List的头部
+     * 
+     * @param {string} key 
+     * @param {string | string[]} data 
+     */
+    pushToList(key, data){
+        return new Promise((resolve, reject) => {
+            this.#instance.lpush(key, data, (err, result) => {
+                if (err) reject(err)
+                else
+                    resolve(result)
+            })
+        })
+    }
+
 }
 
 

@@ -99,15 +99,15 @@ async function qmsgSend(key, msg) {
  * @param {string} title
  * @param {string} msg 
  */
-async function barkSend(key, title, msg){
+async function barkSend(key, title, msg) {
     let url = `https://api.day.app/${key}/${title}/${msg}`
     url = encodeURI(url)
     let config = {
         method: 'post',
         url: url,
-      }
-      
-      return new Promise(resolve => {
+    }
+
+    return new Promise(resolve => {
         axios(config)
             .then(response => {
                 let state = { code: 0, msg: 'OK' }
@@ -140,16 +140,16 @@ async function barkSend(key, title, msg){
 /**
  * 
  * @param {object} redisClient
- * @param {string} type
- * @param {string} userID 
- * @param {string} apiKey 
+ * @param {object} data 包含userID, type, apiKey, title, content, isTest字段
  * @return {object} 返回形{code: 0, msg: 'OK'}的值
  */
-async function notificationTest(redisClient, userID, type, apiKey) {
+async function notificationSend(redisClient, data) {
     // 限制并发请求
     let client = new RedisOP(redisClient)
+    
+    const userID = data.userID
 
-    noticeLockID = `noticeLock:${userID}`
+    let noticeLockID = `noticeLock:${userID}`
     let noticeLock = await client.isKeyExists(noticeLockID)
     if (noticeLock) {
         return { code: -1, msg: '请求过于频繁,请一分钟后重试' }
@@ -157,20 +157,31 @@ async function notificationTest(redisClient, userID, type, apiKey) {
 
     client.createKeyWithSecTTL(noticeLockID, '0', 60)
 
+    const apiKey = data.apiKey
+    let title = ''
+    let content = ''
+    if (data.isTest === true) {
+        title = '测试'
+        content = '这是一条测试内容'
+    } else {
+        title = data.title
+        content = data.content
+    }
+
 
     let result = {}
-    switch (type) {
+    switch (data.type) {
         case 'serverChan':
-            result = await severChanSend(apiKey, '测试', '这是一条测试内容')
+            result = await severChanSend(apiKey, title, content)
             break
         case 'qmsg':
-            result = await qmsgSend(apiKey, '这是一条测试内容')
+            result = await qmsgSend(apiKey, `${title}:  ${content}`)
             break
         case 'bark':
-            result = await barkSend(apiKey, '测试', '这是一条测试内容')
+            result = await barkSend(apiKey, title, content)
             break
         default:
-            result = { code: -1, msg: '请求类型不正确' }
+            result = { code: -1, msg: '通知的请求类型不正确' }
     }
 
     return result
@@ -201,5 +212,5 @@ async function getUserNoticeType(redisClient, userID) {
 
 exports.severChanSend = severChanSend
 exports.qmsgSend = qmsgSend
-exports.notificationTest = notificationTest
+exports.notificationSend = notificationSend
 exports.getUserNoticeType = getUserNoticeType

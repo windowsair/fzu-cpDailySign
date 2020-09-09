@@ -120,7 +120,7 @@ function signFormFill(task) {
             }
             else if (title.indexOf('症状') != -1 || title.indexOf('发热') != -1) {
                 for (let value of fieldItmArray) {
-                    if (value.content.indexOf('否') != -1) {
+                    if (value.content.indexOf('否') != -1 || value.content.indexOf('无') != -1) {
                         resultCount++
                         let tmpData = {
                             extraFieldItemValue: value.content, // 表单项内容
@@ -190,14 +190,18 @@ async function signTask(cookie, cpDailyInfo) {
     // step1: 获取系统中存在的签到任务
     let unsignedTaskResult = await getUnsignedTasks(cookie)
     if (!unsignedTaskResult) {
-        return { code: -1, msg: '系统出错' }
+        return { code: -1, msg: '签到失败,原因是系统出错' }
     }
-    if (unsignedTaskResult.datas.unSignedTasks.length < 1) {
+    if(unsignedTaskResult.datas['WEC-HASLOGIN'] == false){
+        return { code: -1, msg: '签到失败,原因是登录状态过期'}
+    }
+    else if (unsignedTaskResult.datas.unSignedTasks.length < 1) {
         return { code: 1, msg: '暂未发布签到任务' }
     }
 
     // step2: 获取具体的签到任务
-    const lastTask = unsignedTaskResult.datas.unSignedTasks[0]
+    // 最新一次的, 时间还没开始的也可以获取到
+    const lastTask = unsignedTaskResult.datas.unSignedTasks[0] 
     const lastTaskField = {
         signInstanceWid: lastTask.signInstanceWid,
         signWid: lastTask.signWid
@@ -205,7 +209,7 @@ async function signTask(cookie, cpDailyInfo) {
 
     let detailTaskResult = await getDetailTask(cookie, lastTaskField)
     if (!detailTaskResult) {
-        return { code: -1, msg: '系统出错' }
+        return { code: -1, msg: '签到失败,原因是系统出错' }
     }
 
     const detailTask = detailTaskResult.datas
@@ -218,14 +222,13 @@ async function signTask(cookie, cpDailyInfo) {
 
     let signResult = await tryToSign(cookie, cpDailyInfo, form.data)
     if (!signResult) {
-        return { code: -1, msg: '系统出错' }
+        return { code: -1, msg: '签到失败,原因是系统出错' }
     }
 
     if (signResult.message != 'SUCCESS') {
-        console.log('签到成功')
         return { code: 3, msg: `签到失败,原因是${signResult.message}` }
-
     }
+    
     return { code: 0, msg: 'OK' }
 
 

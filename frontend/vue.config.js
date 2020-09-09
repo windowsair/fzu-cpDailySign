@@ -25,6 +25,16 @@ module.exports = {
         target: 'http://127.0.0.1:23340',
         ws: true,
         changeOrigin: true
+      },
+      '/api/testSign': {
+        target: 'http://127.0.0.1:23340',
+        ws: true,
+        changeOrigin: true
+      },
+      '/api/getSignLog': {
+        target: 'http://127.0.0.1:23340',
+        ws: true,
+        changeOrigin: true
       }
     }
   }

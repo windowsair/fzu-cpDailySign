@@ -6,7 +6,6 @@ const session = require('express-session')
 const redis = require('redis')
 const redisStore = require('connect-redis')(session)
 const { RedisOP } = require('./components/redis/redis-operation')
-//const { reqHelper } = require('./components/utils/utils')
 
 
 const bodyParser = require('body-parser')
@@ -16,9 +15,12 @@ const Parameter = require('parameter')
 const { getCpDailyInfo, getMessageCode, verifyMessageCode, verifyUserLogin, updateAcwTc, getModAuthCAS } = require('./components/cpDaily/cpDailyLogin')
 const { signTask } = require('./components/cpDaily/cpDailySign')
 
-const { severChanSend, qmsgSend, notificationTest, getUserNoticeType } = require('./components/notification/notification')
+const { notificationSend, getUserNoticeType } = require('./components/notification/notification')
+const { judgeTimeRange, logSignMsg, getUserSignLog } = require('./components/utils/utils')
+
 
 const fs = require("fs")
+const { sign } = require('crypto')
 
 const redisFile = fs.readFileSync('./config/redis.json')
 const redisSetting = JSON.parse(redisFile)
@@ -31,6 +33,7 @@ const app = express()
 
 let redisSessionClient = redis.createClient(redisSetting["redis-session-setting"])
 let redisUserClient = redis.createClient(redisSetting["redis-user-setting"])
+let redisLogClient = redis.createClient(redisSetting["redis-log-setting"])
 
 
 app.use(
@@ -104,7 +107,7 @@ app.post('/api/login', (req, res) => {
         validateRoot: true,
     })
 
-    let rule = {
+    const rule = {
         studentID: { type: 'string', min: 8, max: 11 },
         phone: { type: 'string', min: 8, max: 11 },
         cap: { type: 'string', min: 1, max: 5 },
@@ -231,7 +234,7 @@ app.post('/api/verifyPhone', (req, res) => {
         validateRoot: true,
     })
 
-    let rule = {
+    const rule = {
         studentID: { type: 'string', min: 8, max: 11 },
         phone: { type: 'string', min: 8, max: 11 },
     }
@@ -445,86 +448,13 @@ app.post('/api/verifyMsgCode', (req, res) => {
 
 
 app.get('/good', (req, res) => {
-    async function test() {
-    }
-    test()
-})
-
-
-app.get('/test1', (req, res) => {
-
-    async function test() {
-        result = await notificationTest(redisUserClient, '', 'serverChan', 'SCU31404Te2ccd8cc66abbdfecdf3c70be36cb46a5b8530465c756')
-        console.log(result)
-        res.send(result)
-    }
-    test()
-})
-
-
-app.post('/api/noticeTest', (req, res) => {
-    let response = { code: 0, msg: 'ok' }
-    try {
-        if (req.session.login != true) {
-            response = { code: -1, msg: '您还未登录!' }
-            res.send(response)
-            return
-        }
-    } catch (error) {
-        response = { code: -1, msg: '您还未登录!' }
-        res.send(response)
-        return
-    }
-
-    let parameter = new Parameter({
-        validateRoot: true,
-    })
-
-    let rule = {
-        studentID: { type: 'string', min: 8, max: 11 },
-    }
-
-    let errors = parameter.validate(rule, req.body)
-
-    if (errors != undefined) {
-        response.code = 1
-        response.msg = '参数不正确'
-        res.send(response)
-        return
-    }
-
-
-    if (req.session.studentID != req.body.studentID) {
-        response = { code: 2, msg: '账户不正确' }
-        res.send(response)
-        return
-    }
-
+    let response = { code: 0, msg: 'OK' }
     async function mainTask() {
-        let userNotice = await getUserNoticeType(redisUserClient, '')
-        if (userNotice.code != 0) {
-            res.send(userNotice)
-            return
-        }
-        const type = userNotice.data.type
-        const apiKey = userNotice.data.apiKey
-        let testResult = await notificationTest(redisUserClient, '', type, apiKey)
-
-        if (testResult.code != 0) {
-            res.send(testResult)
-            return
-        }
-
-        res.send(response)
-
     }
 
     mainTask()
 
 })
-
-
-
 
 app.post('/api/changeNotice', (req, res) => {
     let response = { code: 0, msg: 'ok' }
@@ -544,9 +474,9 @@ app.post('/api/changeNotice', (req, res) => {
         validateRoot: true,
     })
 
-    let rule = {
+    const rule = {
         studentID: { type: 'string', min: 8, max: 11 },
-        apiKey: { type: 'string', min:8},
+        apiKey: { type: 'string', min: 8 },
         type: ['serverChan', 'qmsg', 'bark']
     }
 
@@ -577,16 +507,14 @@ app.post('/api/changeNotice', (req, res) => {
         let client = new RedisOP(redisUserClient)
         await client.setValue(userID, notification)
 
-        // let userNotice = await getUserNoticeType(redisUserClient, '')
-        // if (userNotice.code != 0) {
-        //     res.send(userNotice)
-        //     return
-        // }
 
-
-        const type = notification.type
-        const apiKey = notification.apiKey
-        let testResult = await notificationTest(redisUserClient, '', type, apiKey)
+        const data = {
+            userID: userID,
+            type: notification.type,
+            apiKey: notification.apiKey,
+            isTest: true
+        }
+        let testResult = await notificationSend(redisUserClient, data)
 
         if (testResult.code != 0) {
             res.send(testResult)
@@ -600,7 +528,165 @@ app.post('/api/changeNotice', (req, res) => {
     mainTask()
 
 
+})
 
+app.post('/api/testSign', (req, res) => {
+    let response = { code: 0, msg: 'ok' }
+    try {
+        if (req.session.login != true) {
+            response = { code: -1, msg: '您还未登录!' }
+            res.send(response)
+            return
+        }
+    } catch (error) {
+        response = { code: -1, msg: '您还未登录!' }
+        res.send(response)
+        return
+    }
+
+    let parameter = new Parameter({
+        validateRoot: true,
+    })
+
+    const rule = {
+        studentID: { type: 'string', min: 8, max: 11 },
+        phone: { type: 'string', min: 8, max: 11 },
+    }
+
+    let errors = parameter.validate(rule, req.body)
+
+    if (errors != undefined) {
+        response.code = 1
+        response.msg = '参数不正确'
+        res.send(response)
+        return
+    }
+
+
+    if (req.session.studentID != req.body.studentID || req.session.phone != req.body.phone) {
+        response = { code: 2, msg: '学号/手机号不正确' }
+        res.send(response)
+        return
+    }
+
+    // 验证时间
+    if (judgeTimeRange() == false) {
+        response = { code: 3, msg: '当前不在打卡的时间范围内' }
+        res.send(response)
+        return
+    }
+
+    let userID = 'user:' + req.body.studentID
+
+    async function mainTask() {
+        // step1 : 查找登录信息
+        let client = new RedisOP(redisUserClient)
+        let loginData = await client.getValue(userID, 'loginData')
+        if (loginData[0] == null) {
+            response = { code: 4, msg: '您还未验证手机号!' }
+            res.send(response)
+            return
+        } else {
+            loginData = JSON.parse(loginData[0])
+        }
+
+        // step2: 进行打卡测试
+
+
+        let signTaskResult = await signTask(loginData.cookie, loginData.cpDailyInfo)
+        if (signTaskResult.code != 0) {
+            logSignMsg(redisLogClient, userID, signTaskResult.msg, 'error')
+            res.send(signTaskResult)
+            return
+        }
+
+        // 失败了不发送通知
+
+        // step3: 发送打卡通知
+        let userNotice = await getUserNoticeType(redisUserClient, userID)
+        if (userNotice.code != 0) {
+            logSignMsg(redisLogClient, userID, '打卡成功,未设置通知方式', 'warning')
+            response = { code: 1024, msg: '打卡成功,未设置通知方式' }
+            res.send(response)
+            return
+        }
+
+
+        const data = {
+            userID: userID,
+            type: userNotice.type,
+            apiKey: userNotice.apiKey,
+            isTest: false
+        }
+        let testResult = await notificationSend(redisUserClient, data)
+
+        if (testResult.code != 0) {
+            logSignMsg(redisLogClient, userID, '打卡成功,通知失败,原因是' + testResult.msg, 'warning')
+            res.send(testResult)
+            return
+        }
+
+        logSignMsg(redisLogClient, userID, '打卡成功', 'success')
+        res.send(response)
+
+    }
+
+    mainTask()
+
+})
+
+
+app.post('/api/getSignLog', (req, res) => {
+    let response = { code: 0, msg: 'ok' }
+    try {
+        if (req.session.login != true) {
+            response = { code: -1, msg: '您还未登录!' }
+            res.send(response)
+            return
+        }
+    } catch (error) {
+        response = { code: -1, msg: '您还未登录!' }
+        res.send(response)
+        return
+    }
+
+    let parameter = new Parameter({
+        validateRoot: true,
+    })
+
+    const rule = {
+        studentID: { type: 'string', min: 8, max: 11 },
+    }
+
+    let errors = parameter.validate(rule, req.body)
+
+    if (errors != undefined) {
+        response.code = 1
+        response.msg = '参数不正确'
+        res.send(response)
+        return
+    }
+
+
+    if (req.session.studentID != req.body.studentID) {
+        response = { code: 2, msg: '学号不正确' }
+        res.send(response)
+        return
+    }
+
+    let userID = 'user:' + req.body.studentID
+    async function mainTask() {
+        let logData = await getUserSignLog(redisLogClient, userID)
+        if (logData.length == 0) {
+            response = { code: 1025, msg: '暂无数据' }
+        } else {
+            response.data = logData
+        }
+
+        res.send(response)
+    }
+
+    mainTask()
 
 })
 
