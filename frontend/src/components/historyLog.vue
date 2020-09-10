@@ -7,7 +7,7 @@
     :v-loading="dialogLoading"
   >
     <el-table :data="gridData" :row-class-name="tableRowClassName">
-      <el-table-column property="time" label="时间" width="160"></el-table-column>
+      <el-table-column property="time" label="时间" width="170"></el-table-column>
       <el-table-column property="type" label="事件类型" width="80"></el-table-column>
       <el-table-column property="msg" label="消息"></el-table-column>
     </el-table>

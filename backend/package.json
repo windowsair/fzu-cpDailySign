@@ -16,6 +16,7 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
+    "node-cron": "^2.0.3",
     "parameter": "^3.6.0",
     "redis": "^3.0.2",
     "request": "^2.88.2",

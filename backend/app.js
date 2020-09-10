@@ -16,15 +16,16 @@ const { getCpDailyInfo, getMessageCode, verifyMessageCode, verifyUserLogin, upda
 const { signTask } = require('./components/cpDaily/cpDailySign')
 
 const { notificationSend, getUserNoticeType } = require('./components/notification/notification')
-const { judgeTimeRange, logSignMsg, getUserSignLog } = require('./components/utils/utils')
+const { judgeTimeRange, logSignMsg, getUserSignLog, cronSignTask } = require('./components/utils/utils')
 
 
 const fs = require("fs")
-const { sign } = require('crypto')
 
 const redisFile = fs.readFileSync('./config/redis.json')
 const redisSetting = JSON.parse(redisFile)
 
+
+const cron = require('node-cron')
 
 const app = express()
 
@@ -695,3 +696,31 @@ app.post('/api/getSignLog', (req, res) => {
  * 简单验证码模块
  */
 app.get('/api/captcha.jpg', captcha.image())
+
+
+
+// 定时任务
+
+
+// 5-7点每25分钟执行一次
+cron.schedule('*/25 5-7 * * *', () => {
+    cronSignTask(redisUserClient, redisLogClient)
+})
+
+// 11-13点每25分钟执行一次
+cron.schedule('*/25 11-13 * * *', () => {
+    cronSignTask(redisUserClient, redisLogClient)
+})
+
+
+
+// 21点每25分钟执行一次
+cron.schedule('*/25 21 * * *', () => {
+    cronSignTask(redisUserClient, redisLogClient)
+})
+
+
+// 22点10分执行一次
+cron.schedule('10 22 * * *', () => {
+    cronSignTask(redisUserClient, redisLogClient)
+})
