@@ -166,7 +166,6 @@ app.post('/api/login', (req, res) => {
                 client.getValue(userID, 'validate').then(validate => {
                     switch (Number(validate[0])) {
                         case 0: // 此时还未验证成功,可以随意修改(setValue即可)
-                            console.log('ok')
                             client.setValue(userID, userInfo).then(value => {
                                 res.send(response)
                             })
@@ -506,8 +505,12 @@ app.post('/api/changeNotice', (req, res) => {
             apiKey: req.body.apiKey
         }
 
+        const notificationSetting = {
+            notification: JSON.stringify(notification)
+        }
+
         let client = new RedisOP(redisUserClient)
-        await client.setValue(userID, notification)
+        await client.setValue(userID, notificationSetting)
 
 
         const data = {

@@ -176,10 +176,10 @@ async function updateAcwTc(cpDailyInfo, loginData) {
                 resolve(response.headers)
             })
             .catch(error => {
-                console.log(error)
                 if (error.response.status == 302) {
                     resolve(error.response.headers)
                 } else {
+                    console.log(error)
                     resolve(null)
                 }
 
