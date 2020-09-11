@@ -4,7 +4,9 @@
     :visible.sync="dialogEnable"
     custom-class="custom-dialog"
     :close-on-click-modal="false"
-    :v-loading="dialogLoading"
+
+    v-loading="dialogLoading"
+    element-loading-text="请耐心等待"
   >
     <div class="mod-phone-form-wrapper">
       <el-form :model="phoneForm" ref="phoneForm" :rules="phoneRule" :inline="true">

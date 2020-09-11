@@ -99,7 +99,7 @@ function cronSignTask(redisUserClient, redisLogClient) {
                     apiKey: notification.apiKey,
                     isTest: false,
                     title: '签到成功',
-                    content: ''
+                    content: '签到成功'
                 }
                 logSignMsg(redisLogClient, userID, '签到成功', 'success')
                 notificationSend(redisUserClient, noticeData)
