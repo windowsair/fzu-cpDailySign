@@ -4,7 +4,7 @@
     :visible.sync="dialogEnable"
     custom-class="custom-dialog"
     :close-on-click-modal="false"
-    :v-loading="dialogLoading"
+
   >
     <el-table :data="gridData" :row-class-name="tableRowClassName">
       <el-table-column property="time" label="时间" width="170"></el-table-column>
@@ -26,7 +26,6 @@ export default {
   data() {
     return {
       dialogEnable: false,
-      dialogLoading: false,
     }
   },
   methods: {

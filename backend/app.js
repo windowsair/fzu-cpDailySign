@@ -148,6 +148,7 @@ app.post('/api/login', (req, res) => {
     if (response.code == 0) {
         req.session.login = true
         req.session.studentID = req.body.studentID
+        req.session.phone = req.body.phone
     }
 
 
