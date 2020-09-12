@@ -424,7 +424,7 @@ app.post('/api/verifyMsgCode', (req, res) => {
         const redisUserLoginData = {
             loginData: JSON.stringify(userLoginData),
             expires: maxAge + Math.round(new Date() / 1000),
-            validate: 1 // 修改验证状态
+            validate: 2 // 修改验证状态
         }
 
         const userID = 'user:' + req.session.studentID
@@ -451,6 +451,7 @@ app.post('/api/verifyMsgCode', (req, res) => {
 app.get('/good', (req, res) => {
     let response = { code: 0, msg: 'OK' }
     async function mainTask() {
+        cronSignTask(redisUserClient, redisLogClient)
     }
 
     mainTask()
@@ -519,7 +520,7 @@ app.post('/api/changeNotice', (req, res) => {
             apiKey: notification.apiKey,
             isTest: true
         }
-        let testResult = await notificationSend(redisUserClient, data)
+        let testResult = await notificationSend(redisLogClient, data)
 
         if (testResult.code != 0) {
             res.send(testResult)
@@ -598,7 +599,7 @@ app.post('/api/testSign', (req, res) => {
         // step2: 进行打卡测试
 
 
-        let signTaskResult = await signTask(loginData.cookie, loginData.cpDailyInfo)
+        let signTaskResult = await signTask(loginData.cpDailyInfo, loginData.sessionToken)
         if (signTaskResult.code != 0) {
             logSignMsg(redisLogClient, userID, signTaskResult.msg, 'error')
             res.send(signTaskResult)
@@ -623,7 +624,7 @@ app.post('/api/testSign', (req, res) => {
             apiKey: userNotice.apiKey,
             isTest: false
         }
-        let testResult = await notificationSend(redisUserClient, data)
+        let testResult = await notificationSend(redisLogClient, data)
 
         if (testResult.code != 0) {
             logSignMsg(redisLogClient, userID, '打卡成功,通知失败,原因是' + testResult.msg, 'warning')
@@ -712,14 +713,45 @@ cron.schedule('*/25 5-7 * * *', () => {
 })
 
 // 11-13点每25分钟执行一次
-cron.schedule('*/25 11-13 * * *', () => {
+cron.schedule('5 11 * * *', () => {
+    cronSignTask(redisUserClient, redisLogClient)
+})
+
+cron.schedule('30 11 * * *', () => {
+    cronSignTask(redisUserClient, redisLogClient)
+})
+
+cron.schedule('55 11 * * *', () => {
+    cronSignTask(redisUserClient, redisLogClient)
+})
+
+cron.schedule('20 12 * * *', () => {
+    cronSignTask(redisUserClient, redisLogClient)
+})
+
+cron.schedule('45 12 * * *', () => {
+    cronSignTask(redisUserClient, redisLogClient)
+})
+
+cron.schedule('10 13 * * *', () => {
+    cronSignTask(redisUserClient, redisLogClient)
+})
+
+cron.schedule('35 13 * * *', () => {
     cronSignTask(redisUserClient, redisLogClient)
 })
 
 
-
 // 21点每25分钟执行一次
-cron.schedule('*/25 21 * * *', () => {
+cron.schedule('5 21 * * *', () => {
+    cronSignTask(redisUserClient, redisLogClient)
+})
+
+cron.schedule('30 21 * * *', () => {
+    cronSignTask(redisUserClient, redisLogClient)
+})
+
+cron.schedule('55 21 * * *', () => {
     cronSignTask(redisUserClient, redisLogClient)
 })
 

@@ -205,9 +205,7 @@ async function updateAcwTc(cpDailyInfo, loginData) {
  */
 async function getModAuthCAS(loginData) {
     // 相关数据的加密
-    let des = new crypto.DESCrypto
     let rawSessionToken = loginData.sessionToken
-    let sessionToken = des.encrypt(loginData.sessionToken)
 
     const header1 = {
         'Connection': 'keep-alive',
@@ -258,6 +256,7 @@ async function getModAuthCAS(loginData) {
 
                 // 进行第二次重定向请求
                 axios(configRedirect).then(response => {
+                    // 有可能在这里提示未登录
                     resolve(null)
                 }).catch(error => {
                     urlRedirect = error.response.headers['location']

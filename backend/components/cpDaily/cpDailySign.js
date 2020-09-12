@@ -1,5 +1,6 @@
 const { fzuAuth } = require('./cpDailyCommon')
 const axios = require('axios')
+const { getModAuthCAS } = require('../cpDaily/cpDailyLogin')
 
 
 async function getUnsignedTasks(cookie) {
@@ -186,9 +187,29 @@ async function tryToSign(cookie, cpDailyInfo, form) {
 }
 
 
-async function signTask(cookie, cpDailyInfo) {
-    // step1: 获取系统中存在的签到任务
-    let unsignedTaskResult = await getUnsignedTasks(cookie)
+async function signTask(cpDailyInfo, sessionToken) {
+
+    // step1: 更新登录状态
+    const tempData = {sessionToken: sessionToken}
+    let newCookie = await getModAuthCAS(tempData)
+
+    try {
+        if (newCookie['set-cookie'].length < 2) {
+            return { code: -1, msg: 'Cookie获取失败!' }
+        }
+        else {
+            let tmp = ''
+            newCookie['set-cookie'].forEach(e => {
+                tmp += e.split(';')[0] + ';'
+            })
+            newCookie = tmp
+        }
+    } catch (error) {
+        return { code: -1, msg: 'Cookie获取失败!' }
+    }
+
+    // step2: 获取系统中存在的签到任务
+    let unsignedTaskResult = await getUnsignedTasks(newCookie)
     if (!unsignedTaskResult) {
         return { code: -1, msg: '签到失败,原因是系统出错' }
     }
@@ -199,15 +220,18 @@ async function signTask(cookie, cpDailyInfo) {
         return { code: 1, msg: '暂未发布签到任务' }
     }
 
-    // step2: 获取具体的签到任务
+    // step3: 获取具体的签到任务
     // 最新一次的, 时间还没开始的也可以获取到
     const lastTask = unsignedTaskResult.datas.unSignedTasks[0] 
+    //const lastTask = unsignedTaskResult.datas.signedTasks[0] 
+    // unsignedTaskResult.datas.unSignedTasks[0].rateSignDate.split(' ')[0]
+    // 形如2020-09-12
     const lastTaskField = {
         signInstanceWid: lastTask.signInstanceWid,
         signWid: lastTask.signWid
     }
 
-    let detailTaskResult = await getDetailTask(cookie, lastTaskField)
+    let detailTaskResult = await getDetailTask(newCookie, lastTaskField)
     if (!detailTaskResult) {
         return { code: -1, msg: '签到失败,原因是系统出错' }
     }
@@ -220,13 +244,14 @@ async function signTask(cookie, cpDailyInfo) {
     }
 
 
-    let signResult = await tryToSign(cookie, cpDailyInfo, form.data)
+    let signResult = await tryToSign(newCookie, cpDailyInfo, form.data)
     if (!signResult) {
         return { code: -1, msg: '签到失败,原因是系统出错' }
     }
 
     if (signResult.message != 'SUCCESS') {
         return { code: 3, msg: `签到失败,原因是${signResult.message}` }
+        // 2210010000 已登录
     }
     
     return { code: 0, msg: 'OK' }

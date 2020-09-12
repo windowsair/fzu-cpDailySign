@@ -85,7 +85,7 @@ function cronSignTask(redisUserClient, redisLogClient) {
             return
         }
 
-        let signResult = await signTask(loginData.cookie, loginData.cpDailyInfo)
+        let signResult = await signTask(loginData.cpDailyInfo, loginData.sessionToken)
 
         if (signResult.code == 0) {
             // 成功签到
@@ -102,7 +102,7 @@ function cronSignTask(redisUserClient, redisLogClient) {
                     content: '签到成功'
                 }
                 logSignMsg(redisLogClient, userID, '签到成功', 'success')
-                notificationSend(redisUserClient, noticeData)
+                notificationSend(redisLogClient, noticeData)
             }
 
             if (!isFirstTime) {
@@ -124,7 +124,7 @@ function cronSignTask(redisUserClient, redisLogClient) {
                         title: '签到失败',
                         content: signResult.msg
                     }
-                    notificationSend(redisUserClient, noticeData)
+                    notificationSend(redisLogClient, noticeData)
                 }
             }
 
