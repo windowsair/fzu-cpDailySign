@@ -20,6 +20,14 @@ function judgeTimeRange() {
     return false
 }
 
+
+async function takeLongTime() {
+    return new Promise(resolve => {
+        setTimeout(() => resolve(''), 10000)
+    })
+}
+
+
 // TODO: 定时删除过时的数据
 /**
  * 将签到过程中的结果记录到数据库中
@@ -79,10 +87,10 @@ function cronSignTask(redisUserClient, redisLogClient) {
 
         if (loginData == null) {
             if(userID == '0'){ // 忽略无用项
-                return
+                return {code: -1, msg: '未找到有效用户'}
             }
             logSignMsg(redisLogClient, userID, '未验证手机号', 'warning')
-            return
+            return {code: -1, msg: '未找到有效用户'}
         }
 
         let signResult = await signTask(loginData.cpDailyInfo, loginData.sessionToken)
@@ -133,6 +141,8 @@ function cronSignTask(redisUserClient, redisLogClient) {
             logSignMsg(redisLogClient, userID, msg, 'error')
         }
 
+        return {code: 0, msg: 'done'}
+
     }
 
     async function mainLoop() {
@@ -165,7 +175,11 @@ function cronSignTask(redisUserClient, redisLogClient) {
             let userData = userList[1]
             for (let index = 0; index < userData.length; index++) {
                 const userID = userData[index]
-                await mainTask(userID, isFirstTime) // 顺序执行
+                let taskResult  = await mainTask(userID, isFirstTime) // 顺序执行
+
+                if(taskResult.code == 0){
+                    await takeLongTime() // 限制并发
+                }
                 // doSomething
             }
 

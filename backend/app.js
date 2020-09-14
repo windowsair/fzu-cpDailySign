@@ -708,7 +708,15 @@ app.get('/api/captcha.jpg', captcha.image())
 
 
 // 5-7点每25分钟执行一次
-cron.schedule('*/25 5-7 * * *', () => {
+cron.schedule('5 5 * * *', () => {
+    cronSignTask(redisUserClient, redisLogClient)
+})
+
+cron.schedule('30 5 * * *', () => {
+    cronSignTask(redisUserClient, redisLogClient)
+})
+
+cron.schedule('*/25 6-7 * * *', () => {
     cronSignTask(redisUserClient, redisLogClient)
 })
 
