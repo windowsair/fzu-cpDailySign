@@ -203,6 +203,100 @@ async function updateAcwTc(cpDailyInfo, loginData) {
  * -> 获取mod_auth_cas
  *  
  */
+async function getModAuthCAS_sign(loginData) {
+    // 相关数据的加密
+    let rawSessionToken = loginData.sessionToken
+
+    const header0 = {
+        'Connection': 'keep-alive',
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 4.4.4; PCRT00 Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/33.0.0.0 Safari/537.36 cpdaily/8.0.8 wisedu/8.0.8',
+        'Accept-Encoding': 'gzip,deflate',
+        'Accept-Language': 'zh-CN,en-US;q=0.8',
+        'X-Requested-With': 'com.wisedu.cpdaily',
+        'Host': 'api.campushoy.com'
+    }
+
+    const header1 = {
+        'Connection': 'keep-alive',
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 4.4.4; PCRT00 Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/33.0.0.0 Safari/537.36 cpdaily/8.0.8 wisedu/8.0.8',
+        'Accept-Encoding': 'gzip,deflate',
+        'Accept-Language': 'zh-CN,en-US;q=0.8',
+        'X-Requested-With': 'com.wisedu.cpdaily',
+
+        'Host': fzuAuth.host,
+    }
+
+    const header2 = {
+        'Host': 'www.cpdaily.com',
+        'Connection': 'keep-alive',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 4.4.4; PCRT00 Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/33.0.0.0 Safari/537.36 cpdaily/8.0.8 wisedu/8.0.8',
+        'Accept-Encoding': 'gzip,deflate',
+        'Accept-Language': 'zh-CN,en-US;q=0.8',
+
+        'Cookie':
+            `clientType=cpdaily_student; tenantId=${fzuAuth.tenantId}; sessionToken=${rawSessionToken}`,
+    }
+
+    let config = {
+        method: 'get',
+        url: `https://${fzuAuth.host}/wec-counselor-collector-apps/stu/mobile/index.html?timestamp=`
+            + Math.round(new Date()),
+        headers: header1,
+        maxRedirects: 0 // 下面我们手动进行重定向
+    }
+
+    let configRedirect = {
+        method: 'get',
+        url: '', // 之后用重定向的地址填充
+        headers: header2,
+        maxRedirects: 0
+    }
+
+    // 这里偷懒下直接嵌套
+    // 第一次fzu.cpdaily.com
+    return new Promise(resolve => {
+        axios(config)
+            .then(response => {
+                resolve(null)
+            })
+            .catch(error => {
+                urlRedirect = error.response.headers['location']
+                configRedirect.url = urlRedirect
+                configRedirect.headers = header0
+
+                // 进行第二次重定向请求  api.ccmpushoy.com
+                axios(configRedirect).then(response => {
+                    // 有可能在这里提示未登录
+                    resolve(null)
+                }).catch(error => {
+                    urlRedirect = error.response.headers['location']
+                    config.url = urlRedirect
+                    config.headers = header2
+
+                    // 进行第三次请求
+                    axios(config).then(response => {
+                        resolve(null)
+                    }).catch(error => {
+                        urlRedirect = error.response.headers['location']
+                        config.url = urlRedirect
+                        config.headers = header1
+                        
+                        axios(config).then(response => {
+                            resolve(null)
+                        }).catch(error => {
+                            resolve(error.response.headers)
+                        })
+                    })
+                })
+            })
+    })
+}
+
+
+
+
+
 async function getModAuthCAS(loginData) {
     // 相关数据的加密
     let rawSessionToken = loginData.sessionToken
@@ -280,3 +374,4 @@ exports.verifyMessageCode = verifyMessageCode
 exports.verifyUserLogin = verifyUserLogin
 exports.updateAcwTc = updateAcwTc
 exports.getModAuthCAS = getModAuthCAS
+exports.getModAuthCAS_sign = getModAuthCAS_sign

@@ -72,7 +72,7 @@ async function getDetailCollector(cookie, collectorWid) {
             'Accept-Language': 'zh-CN,en-US;q=0.8',
             'Content-Type': 'application/json;charset=UTF-8',
             //// TODO: 这里的cookie需要替换掉
-            'Cookie': 'acw_tc=781bad0615993902663581795e7debdf363ba84bdafdee23c937a34d0369c4;MOD_AUTH_CAS=EDxAQPvW7YPcac1CqIqjyK1581742739;'
+            'Cookie': ''
         },
         data: data
     }
@@ -102,8 +102,6 @@ async function getForm(cookie){
 }
 
 async function queryForm(cookie) {
-    //// TODO: 这里的cookie需要替换掉
-    cookie = 'acw_tc=781bad0615993902663581795e7debdf363ba84bdafdee23c937a34d0369c4;MOD_AUTH_CAS=EDxAQPvW7YPcac1CqIqjyK1581742739;'
     // step1: 获取总表
     
     let formSubmitTask = await querySubmitFormTask(cookie)

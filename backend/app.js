@@ -12,7 +12,7 @@ const bodyParser = require('body-parser')
 const Parameter = require('parameter')
 
 
-const { getCpDailyInfo, getMessageCode, verifyMessageCode, verifyUserLogin, updateAcwTc, getModAuthCAS } = require('./components/cpDaily/cpDailyLogin')
+const { getCpDailyInfo, getMessageCode, verifyMessageCode, verifyUserLogin, updateAcwTc, getModAuthCAS, getModAuthCAS_sign } = require('./components/cpDaily/cpDailyLogin')
 const { signTask } = require('./components/cpDaily/cpDailySign')
 
 const { notificationSend, getUserNoticeType } = require('./components/notification/notification')
@@ -26,6 +26,7 @@ const redisSetting = JSON.parse(redisFile)
 
 
 const cron = require('node-cron')
+require('console-stamp')(console, { pattern: 'yyyy/mm/dd HH:MM:ss' })
 
 const app = express()
 
@@ -276,50 +277,13 @@ app.post('/api/verifyPhone', (req, res) => {
                     response = { code: 2, msg: val.errMsg }
                 }
             }
-            catch{
+            catch {
                 response = { code: -1, msg: '系统出错' }
             }
 
             res.send(response)
             return
         })
-})
-
-
-// 仅用于测试
-app.post('/testPhone', (req, res) => {
-    let response = { code: 0, msg: 'OK' }
-
-    let username = ''
-    let phone = ''
-
-    let cpDailyInfo = getCpDailyInfo(username)
-    req.session.cpDailyInfo = cpDailyInfo // 暂时保存,等验证成功了再写入数据库
-
-    getMessageCode(cpDailyInfo, phone)
-        .then(value => {
-            if (value == null) {
-                response = { code: -1, msg: '系统出错' }
-            }
-            try {
-                if (value.errMsg != null) {
-                    response = { code: 2, msg: val.errMsg }
-                }
-                // 次数上限
-                else if (value.data.status != 200) {
-                    response = { code: 3, msg: val.data.tipMsg }
-                }
-            }
-            catch{
-                response = { code: -1, msg: '系统出错' }
-            }
-
-            res.send(response)
-            return
-        })
-    // res.send(response)
-
-
 })
 
 
@@ -599,7 +563,7 @@ app.post('/api/testSign', (req, res) => {
         // step2: 进行打卡测试
 
 
-        let signTaskResult = await signTask(loginData.cpDailyInfo, loginData.sessionToken)
+        let signTaskResult = await signTask(loginData.cpDailyInfo, loginData.sessionToken, loginData.cookie)
         if (signTaskResult.code != 0) {
             logSignMsg(redisLogClient, userID, signTaskResult.msg, 'error')
             res.send(signTaskResult)
@@ -707,27 +671,26 @@ app.get('/api/captcha.jpg', captcha.image())
 // 定时任务
 
 
+//// TODO: 等稳定了再封装
+
 // 5-7点每25分钟执行一次
-cron.schedule('5 5 * * *', () => {
-    cronSignTask(redisUserClient, redisLogClient)
-})
-
-cron.schedule('30 5 * * *', () => {
-    cronSignTask(redisUserClient, redisLogClient)
-})
-
 cron.schedule('*/25 6-7 * * *', () => {
     cronSignTask(redisUserClient, redisLogClient)
 })
 
 // 11-13点每25分钟执行一次
-cron.schedule('5 11 * * *', () => {
+cron.schedule('15 11 * * *', () => {
     cronSignTask(redisUserClient, redisLogClient)
 })
 
 cron.schedule('30 11 * * *', () => {
     cronSignTask(redisUserClient, redisLogClient)
 })
+
+cron.schedule('41 11 * * *', () => {
+    cronSignTask(redisUserClient, redisLogClient)
+})
+
 
 cron.schedule('55 11 * * *', () => {
     cronSignTask(redisUserClient, redisLogClient)
@@ -751,8 +714,9 @@ cron.schedule('35 13 * * *', () => {
 
 
 // 21点每25分钟执行一次
-cron.schedule('5 21 * * *', () => {
+cron.schedule('15 21 * * *', () => {
     cronSignTask(redisUserClient, redisLogClient)
+
 })
 
 cron.schedule('30 21 * * *', () => {

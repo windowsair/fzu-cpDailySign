@@ -57,7 +57,7 @@ export default {
   methods: {
     welcomMsg: function () {
       return this.$store.state.loggedIn == true
-        ? "欢迎," + this.$store.state.studentID
+        ? "欢迎, " + this.$store.state.studentID
         : "欢迎注册/登录";
     },
   },

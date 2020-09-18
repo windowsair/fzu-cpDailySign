@@ -20,10 +20,15 @@ function judgeTimeRange() {
     return false
 }
 
+// function judgeTimeRange() {
+
+//     return true
+// }
+
 
 async function takeLongTime() {
     return new Promise(resolve => {
-        setTimeout(() => resolve(''), 10000)
+        setTimeout(() => resolve(''), 20000)
     })
 }
 
@@ -75,6 +80,13 @@ async function getUserSignLog(redisClient, userID) {
  * @param {bool} isFirstTime 采取多次签到的形式,第二次之后会在失败的用户中进行.
  */
 function cronSignTask(redisUserClient, redisLogClient) {
+    if (process.env.NODE_APP_INSTANCE === '0') {
+        console.log('start cron!')
+    } else{
+        return
+    }
+
+
     let userClient = new RedisOP(redisUserClient)
     let logClient = new RedisOP(redisLogClient)
 
@@ -93,7 +105,7 @@ function cronSignTask(redisUserClient, redisLogClient) {
             return {code: -1, msg: '未找到有效用户'}
         }
 
-        let signResult = await signTask(loginData.cpDailyInfo, loginData.sessionToken)
+        let signResult = await signTask(loginData.cpDailyInfo, loginData.sessionToken, loginData.cookie)
 
         if (signResult.code == 0) {
             // 成功签到
@@ -139,6 +151,7 @@ function cronSignTask(redisUserClient, redisLogClient) {
             // 记录错误消息
             let msg = signResult.msg
             logSignMsg(redisLogClient, userID, msg, 'error')
+            return {code: 0, msg: msg}
         }
 
         return {code: 0, msg: 'done'}
@@ -176,7 +189,7 @@ function cronSignTask(redisUserClient, redisLogClient) {
             for (let index = 0; index < userData.length; index++) {
                 const userID = userData[index]
                 let taskResult  = await mainTask(userID, isFirstTime) // 顺序执行
-
+                console.log(taskResult)
                 if(taskResult.code == 0){
                     await takeLongTime() // 限制并发
                 }

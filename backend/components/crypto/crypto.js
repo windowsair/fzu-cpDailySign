@@ -3,7 +3,7 @@ class DESCrypto {
     #iv = Buffer.from([0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8])
 
     encrypt(str) {
-        const crypto = require('crypto');
+        const crypto = require('crypto')
 
         let cipher = crypto.createCipheriv('des-cbc', this.#key, this.#iv)
         cipher.setAutoPadding(true) // 显式启用PKCS5 padding
@@ -13,7 +13,7 @@ class DESCrypto {
         return encrypted
     }
     decrypt(strBase64) {
-        const crypto = require('crypto');
+        const crypto = require('crypto')
 
         let decipher = crypto.createDecipheriv('des-cbc', this.#key, this.#iv)
         decipher.setAutoPadding(true) // 显式启用PKCS5 padding
@@ -32,8 +32,8 @@ class AESCrypto {
         return str
     }
     encrypt(data, key, iv) {
-        const crypto = require('crypto');
-        iv = Buffer.from(key, 'utf8') || iv;
+        const crypto = require('crypto')
+        iv = Buffer.from(key, 'utf8') || iv
 
         let cipher = crypto.createCipheriv('aes-128-cbc', key, iv)
         cipher.setAutoPadding(true) // 显式启用PKCS5 padding
