@@ -19,18 +19,21 @@ fzu-cpDailySign 是带有基本前后端的今日校园签到测试工具:wink:
 
 # 功能
 
-> 本项目仍在开发中，尚未用于生产.
-
 1. 已经实现的功能
     - [x] 用户注册/登录
     - [x] 手机验证码登录/验证
-    - [x] 手动的签到功能
-    - [ ] 自动的签到功能
-    - [x] 打卡测试
+    - [x] 手动签到
+    - [x] 签到测试
     - [x] 可选的签到结果推送 iOS Bark / Server酱 / Qmsg酱
     - [x] 历史打卡结果记录
     - [ ] ...
-    
+2. 正在测试中的功能
+    - [x] 自动签到
+
+
+----
+
+
 # 开发
 
 ## 安装
@@ -46,16 +49,17 @@ $ git clone && npm install
 
 ## 开发环境运行
 
-
 1. Vue
 
 ```bash
+$ cd frontend
 $ npm run serve
 ```
 
 2. express
 
 ```bash
+$ cd backend
 $ npm run app.js
 ```
 
@@ -63,12 +67,30 @@ $ npm run app.js
 
 [redis.json](backend/config/redis.json) : 用于配置Redis相关的连接设置，按照文件内的说明进行配置
 
-[vue.config.js](frontend/vue.config.js) : Vue Cli相关配置，待完善
+[vue.config.js](frontend/vue.config.js) : Vue CLI相关配置，待完善
 
 
 # 部署
 
+## 前端部署
 
+参考Vue-CLI的相关内容: https://cli.vuejs.org/zh/guide/deployment.html
+
+----
+
+## 后端部署
+
+下面给出一种可能的通过pm2进行部署的方法:
+
+```bash
+$ pm2 start app.js -i max
+```
+
+更多相关的配置，参考:https://pm2.keymetrics.io/docs/usage/pm2-doc-single-page/
+
+----
+
+> 使用其他方式部署时，需要修改定时签到中的相关内容.
 
 # Credits
 
@@ -78,7 +100,10 @@ $ npm run app.js
 
 # TODO
 
-开发中...
+1. 检查账户有效性
+2. 账户安全性增强
+3. 相关信息提示
+4. ...
 
 # 许可协议
 
