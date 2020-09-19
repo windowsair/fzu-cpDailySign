@@ -60,7 +60,7 @@ $ npm run serve
 
 ```bash
 $ cd backend
-$ npm run app.js
+$ node app.js
 ```
 
 > 相关配置说明

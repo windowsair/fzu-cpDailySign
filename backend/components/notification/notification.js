@@ -41,7 +41,7 @@ async function severChanSend(sckey, title, msg) {
             })
             .catch(error => {
                 console.log(error)
-                resolve({ code: -1, msg: 'serverChan请求失败' })
+                resolve({ code: -1, msg: 'serverChan请求失败,检查KEY是否填写正确' })
             })
     })
 }
@@ -86,7 +86,7 @@ async function qmsgSend(key, msg) {
             })
             .catch(error => {
                 console.log(error)
-                resolve({ code: -1, msg: 'qmsg请求失败' })
+                resolve({ code: -1, msg: 'qmsg请求失败,检查KEY是否填写正确' })
             })
     })
 }
@@ -131,7 +131,7 @@ async function barkSend(key, title, msg) {
             })
             .catch(error => {
                 console.log(error)
-                resolve({ code: -1, msg: 'Bark请求失败' })
+                resolve({ code: -1, msg: 'Bark请求失败,检查KEY是否填写正确' })
             })
     })
 }

@@ -474,10 +474,6 @@ app.post('/api/changeNotice', (req, res) => {
             notification: JSON.stringify(notification)
         }
 
-        let client = new RedisOP(redisUserClient)
-        await client.setValue(userID, notificationSetting)
-
-
         const data = {
             userID: userID,
             type: notification.type,
@@ -490,6 +486,9 @@ app.post('/api/changeNotice', (req, res) => {
             res.send(testResult)
             return
         }
+
+        let client = new RedisOP(redisUserClient)
+        await client.setValue(userID, notificationSetting)
 
         res.send(response)
 
