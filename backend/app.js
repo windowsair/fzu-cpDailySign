@@ -1,3 +1,17 @@
+// 缓存DNS请求
+var dns = require('dns'),
+    dnscache = require('dnscache')({
+        "enable": true,
+        "ttl": 300,
+        "cachesize": 1000
+    })
+dnscache.lookup('fzu.cpdaily.com',  (err, result) => {})
+dnscache.lookup('www.cpdaily.com',  (err, result) => {})
+dnscache.lookup('sc.ftqq.com',  (err, result) => {})
+dnscache.lookup('qmsg.zendee.cn',  (err, result) => {})
+dnscache.lookup('api.day.app',  (err, result) => {})
+
+
 const express = require('express')
 const cors = require('cors')
 const session = require('express-session')
@@ -16,7 +30,7 @@ const { getCpDailyInfo, getMessageCode, verifyMessageCode, verifyUserLogin, upda
 const { signTask } = require('./components/cpDaily/cpDailySign')
 
 const { notificationSend, getUserNoticeType } = require('./components/notification/notification')
-const { judgeTimeRange, logSignMsg, getUserSignLog, cronSignTask } = require('./components/utils/utils')
+const { judgeTimeRange, logSignMsg, getUserSignLog, cronSignTask, systemNotice } = require('./components/utils/utils')
 
 
 const fs = require("fs")
