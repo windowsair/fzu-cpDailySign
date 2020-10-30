@@ -16,7 +16,7 @@
     "console-stamp": "^0.2.9",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
-    "dns": "^0.2.2",
+    "cron": "^1.8.2",
     "dnscache": "^1.0.2",
     "express": "^4.17.1",
     "express-session": "^1.17.1",

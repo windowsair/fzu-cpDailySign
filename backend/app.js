@@ -5,11 +5,13 @@ var dns = require('dns'),
         "ttl": 300,
         "cachesize": 1000
     })
-dnscache.lookup('fzu.cpdaily.com',  (err, result) => {})
-dnscache.lookup('www.cpdaily.com',  (err, result) => {})
-dnscache.lookup('sc.ftqq.com',  (err, result) => {})
-dnscache.lookup('qmsg.zendee.cn',  (err, result) => {})
-dnscache.lookup('api.day.app',  (err, result) => {})
+dnscache.lookup('fzu.cpdaily.com', (err, result) => { })
+dnscache.lookup('fzu.campusphere.net', (err, result) => { })
+dnscache.lookup('id.fzu.edu.cn', (err, result) => { })
+dnscache.lookup('www.cpdaily.com', (err, result) => { })
+dnscache.lookup('sc.ftqq.com', (err, result) => { })
+dnscache.lookup('qmsg.zendee.cn', (err, result) => { })
+dnscache.lookup('api.day.app', (err, result) => { })
 
 
 const express = require('express')
@@ -26,11 +28,12 @@ const bodyParser = require('body-parser')
 const Parameter = require('parameter')
 
 
-const { getCpDailyInfo, getMessageCode, verifyMessageCode, verifyUserLogin, updateAcwTc, getModAuthCAS, getModAuthCAS_sign } = require('./components/cpDaily/cpDailyLogin')
+const { getCpDailyInfo, getMessageCode, verifyMessageCode, verifyUserLogin, loginGetCookie  } = require('./components/cpDaily/cpDailyLogin')
 const { signTask } = require('./components/cpDaily/cpDailySign')
 
 const { notificationSend, getUserNoticeType } = require('./components/notification/notification')
 const { judgeTimeRange, logSignMsg, getUserSignLog, cronSignTask, systemNotice } = require('./components/utils/utils')
+const {querySubmitFormTask} = require('./components/cpDaily/cpDailySubmit')
 
 
 const fs = require("fs")
@@ -39,7 +42,7 @@ const redisFile = fs.readFileSync('./config/redis.json')
 const redisSetting = JSON.parse(redisFile)
 
 
-const cron = require('node-cron')
+const CronJob = require('cron').CronJob;
 require('console-stamp')(console, { pattern: 'yyyy/mm/dd HH:MM:ss' })
 
 const app = express()
@@ -362,14 +365,10 @@ app.post('/api/verifyMsgCode', (req, res) => {
 
 
         const loginData = loginResult.data
+        const tgcData = loginData.tgc
 
-        // step3: 获取acw_tc字段
-        const acwTcHeader = await updateAcwTc(cpDailyInfo, loginData)
-
-
-        console.log(loginData)
-
-        cookie = await getModAuthCAS(loginData)
+        // step3: 获取Cookie
+        const cookie = await loginGetCookie(cpDailyInfo, loginData)
         const maxAge = 2592000
 
         try {
@@ -397,6 +396,7 @@ app.post('/api/verifyMsgCode', (req, res) => {
         const userLoginData = {
             sessionToken: loginData.sessionToken,
             cpDailyInfo: cpDailyInfo,
+            tgc: tgcData,
             cookie: cookie,
         }
         const redisUserLoginData = {
@@ -429,7 +429,6 @@ app.post('/api/verifyMsgCode', (req, res) => {
 app.get('/good', (req, res) => {
     let response = { code: 0, msg: 'OK' }
     async function mainTask() {
-        cronSignTask(redisUserClient, redisLogClient)
     }
 
     mainTask()
@@ -576,7 +575,7 @@ app.post('/api/testSign', (req, res) => {
         // step2: 进行打卡测试
 
 
-        let signTaskResult = await signTask(loginData.cpDailyInfo, loginData.sessionToken, loginData.cookie)
+        let signTaskResult = await signTask(userID, loginData)
         if (signTaskResult.code != 0) {
             logSignMsg(redisLogClient, userID, signTaskResult.msg, 'error')
             res.send(signTaskResult)
@@ -683,65 +682,8 @@ app.get('/api/captcha.jpg', captcha.image())
 
 // 定时任务
 
-
-//// TODO: 等稳定了再封装
-
 // 5-7点每25分钟执行一次
-cron.schedule('*/25 6-7 * * *', () => {
+var job1 = new CronJob('*/30 6-9 * * *', function () {
     cronSignTask(redisUserClient, redisLogClient)
-})
+}, null, true)
 
-// 11-13点每25分钟执行一次
-cron.schedule('15 11 * * *', () => {
-    cronSignTask(redisUserClient, redisLogClient)
-})
-
-cron.schedule('30 11 * * *', () => {
-    cronSignTask(redisUserClient, redisLogClient)
-})
-
-cron.schedule('41 11 * * *', () => {
-    cronSignTask(redisUserClient, redisLogClient)
-})
-
-
-cron.schedule('55 11 * * *', () => {
-    cronSignTask(redisUserClient, redisLogClient)
-})
-
-cron.schedule('20 12 * * *', () => {
-    cronSignTask(redisUserClient, redisLogClient)
-})
-
-cron.schedule('45 12 * * *', () => {
-    cronSignTask(redisUserClient, redisLogClient)
-})
-
-cron.schedule('10 13 * * *', () => {
-    cronSignTask(redisUserClient, redisLogClient)
-})
-
-cron.schedule('35 13 * * *', () => {
-    cronSignTask(redisUserClient, redisLogClient)
-})
-
-
-// 21点每25分钟执行一次
-cron.schedule('15 21 * * *', () => {
-    cronSignTask(redisUserClient, redisLogClient)
-
-})
-
-cron.schedule('30 21 * * *', () => {
-    cronSignTask(redisUserClient, redisLogClient)
-})
-
-cron.schedule('55 21 * * *', () => {
-    cronSignTask(redisUserClient, redisLogClient)
-})
-
-
-// 22点10分执行一次
-cron.schedule('10 22 * * *', () => {
-    cronSignTask(redisUserClient, redisLogClient)
-})

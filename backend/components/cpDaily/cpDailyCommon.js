@@ -2,7 +2,7 @@ const fzuAuth = {
     'tenantId': 'fzu',
     'login-url':
         'http://id.fzu.edu.cn/authserver/login?service=https%3A%2F%2Ffzu.cpdaily.com%2Fportal%2Flogin',
-    'host': 'fzu.cpdaily.com'
+    'host': 'fzu.campusphere.net'
 }
 
 const headerCommon = {

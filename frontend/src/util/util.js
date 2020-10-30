@@ -5,7 +5,7 @@
  * @return bool
  */
 function judgeTimeRange() {
-    const timeRangeList = [[500, 820], [1100, 1400], [2100, 2230]]
+    const timeRangeList = [[500, 2230]]
     let now = new Date()
     let val = now.getHours() * 100 + now.getMinutes()
 

@@ -1,14 +1,14 @@
 const { fzuAuth } = require('./cpDailyCommon')
 const axios = require('axios')
-const { updateAcwTc, getModAuthCAS, getModAuthCAS_sign } = require('../cpDaily/cpDailyLogin')
-
+const { relogin } = require('../cpDaily/cpDailyLogin')
+const { RedisOP } = require('../redis/redis-operation')
 
 async function getUnsignedTasks(cookie) {
     let data = {}
 
     let config = {
         method: 'post',
-        url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/getStuSignInfosInOneDay`,
+        url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/queryDailySginTasks`, //  queryDailySginTasks  getStuSignInfosInOneDay
         headers: {
             'Connection': 'keep-alive',
             'Accept': 'application/json, text/plain, */*',
@@ -48,7 +48,7 @@ async function getDetailTask(cookie, task) {
 
     let config = {
         method: 'post',
-        url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/detailSignInstance`,
+        url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/detailSignTaskInst`,
         headers: {
             'Accept': 'application/json, text/plain, */*',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
@@ -91,7 +91,7 @@ function signFormFill(task) {
 
 
         abnormalReason: '', // 不在签到范围的反馈原因,可以不填
-        position: '中国福建省福州市闽侯县源江路' // 注意位置的填写
+        position: '福州大学第二田径场' // 注意位置的填写
     }
 
     extraData = []
@@ -153,7 +153,7 @@ async function tryToSign(cookie, cpDailyInfo, form) {
 
     let config = {
         method: 'post',
-        url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/submitSign`,
+        url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/completeSignIn`,
         headers: {
             'User-Agent': 'Mozilla/5.0 (Linux; Android 4.4.4; OPPO R11 Plus Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/33.0.0.0 Safari/537.36 okhttp/3.12.4',
             'CpdailyStandAlone': '0',
@@ -187,24 +187,43 @@ async function tryToSign(cookie, cpDailyInfo, form) {
 }
 
 
-async function signTask(cpDailyInfo, sessionToken, loginCookie) {
+async function signTask(userID, loginData) {
+
+    const cpDailyInfo = loginData.cpDailyInfo
+    let loginCookie = loginData.cookie
 
     async function getNewCookie() {
-        const tempData = { sessionToken: sessionToken }
-        let newCookie = await getModAuthCAS_sign(tempData)
+        let result = await relogin(loginData)
 
+        if (result == 0) {
+            return { code: 0, msg: '无需获取', data: loginCookie }
+        }
+        else if (result == -1) {
+            return { code: -1, msg: 'Cookie获取失败!' }
+        }
+
+        // 获取到新的cookie
         try {
-            if (newCookie['set-cookie'].length < 2) {
+            if (result['set-cookie'].length < 2) {
                 return { code: -1, msg: 'Cookie获取失败!' }
             }
             else {
                 let tmp = ''
-                newCookie['set-cookie'].forEach(e => {
+                result['set-cookie'].forEach(e => {
                     tmp += e.split(';')[0] + ';'
                 })
-                newCookie = tmp
+                result = tmp
             }
-            return { code: 0, msg: 'OK', data: newCookie }
+
+            // 更新最新Cookie
+            loginData.cookie = result
+            const redisUserLoginData = {
+                loginData: JSON.stringify(loginData)
+            }
+            let client = new RedisOP(redisUserClient)
+            await client.setValue(userID, redisUserLoginData)
+
+            return { code: 0, msg: 'OK', data: result }
         } catch (error) {
             return { code: -1, msg: 'Cookie获取失败!' }
         }
@@ -227,6 +246,9 @@ async function signTask(cpDailyInfo, sessionToken, loginCookie) {
             }
 
             // 可能cookie已经失效,尝试重新获取下
+            if (!loginData.tgc) {
+                return { code: -1, msg: '系统已更新,请重新登录' }
+            }
             let result = await getNewCookie()
             if (result.code != 0) {
                 return { code: -1, msg: '签到失败,原因是登录状态过期' }
@@ -235,21 +257,19 @@ async function signTask(cpDailyInfo, sessionToken, loginCookie) {
             continue
         }
         else if (unsignedTaskResult.datas.unSignedTasks.length < 1) {
-            return { code: 1, msg: '暂未发布签到任务' }
+            return { code: 1, msg: '暂未发布签到任务或您已经签到' }
         }
 
-        // 无异常
         break
     }
 
 
     // step3: 获取具体的签到任务
-    
-    // 最新一次的, 时间还没开始的也可以获取到
+
+    // 目前的今日校园大概获取不到未开始的
     const lastTask = unsignedTaskResult.datas.unSignedTasks[0]
     //const lastTask = unsignedTaskResult.datas.signedTasks[0] 
-    // unsignedTaskResult.datas.unSignedTasks[0].rateSignDate.split(' ')[0]
-    // 形如2020-09-12
+
     const lastTaskField = {
         signInstanceWid: lastTask.signInstanceWid,
         signWid: lastTask.signWid
@@ -275,7 +295,6 @@ async function signTask(cpDailyInfo, sessionToken, loginCookie) {
 
     if (signResult.message != 'SUCCESS') {
         return { code: 3, msg: `签到失败,原因是${signResult.message}` }
-        // 2210010000 已登录
     }
 
     return { code: 0, msg: 'OK' }

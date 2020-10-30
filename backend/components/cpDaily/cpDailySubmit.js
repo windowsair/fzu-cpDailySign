@@ -35,7 +35,7 @@ async function querySubmitFormTask(cookie) {
         headers: queryTaskCommonHeader,
         data: data
     }
-    configQueryAll.headers.Cookie = cookie
+    config.headers.Cookie = cookie
 
 
     return new Promise(resolve => {
