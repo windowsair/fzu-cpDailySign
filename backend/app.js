@@ -368,7 +368,7 @@ app.post('/api/verifyMsgCode', (req, res) => {
         const tgcData = loginData.tgc
 
         // step3: 获取Cookie
-        const cookie = await loginGetCookie(cpDailyInfo, loginData)
+        let cookie = await loginGetCookie(cpDailyInfo, loginData)
         const maxAge = 2592000
 
         try {

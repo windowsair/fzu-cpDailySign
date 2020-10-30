@@ -114,7 +114,6 @@ async function verifyUserLogin(cpDailyInfo, sessionData) {
         axios(config)
             .then(response => {
                 resolve(response.data)
-                // 这里有个act_tw
             })
             .catch(error => {
                 console.log(error)
@@ -173,7 +172,6 @@ async function loginGetCookie(cpDailyInfo, loginData) {
 
 
     return new Promise(resolve => {
-        newUrl = ''
         axios(config).then(response => {
             console.log(response)
             resolve(null)
@@ -185,6 +183,7 @@ async function loginGetCookie(cpDailyInfo, loginData) {
 
             // 第二次
             axios(config).then(response => {
+                console.log(response)
                 resolve(null)
             }).catch(error => {
                 config.headers.Host = fzuAuth.host
@@ -193,6 +192,7 @@ async function loginGetCookie(cpDailyInfo, loginData) {
 
                 // 第三次
                 axios(config).then(response => {
+                    console.log(response)
                     resolve(null)
                 }).catch(error => {
                     resolve(error.response.headers)
@@ -251,7 +251,6 @@ async function relogin(loginData) {
     }
     console.log(config)
     return new Promise(resolve => {
-        newUrl = ''
         axios(config).then(response => {
             try {
                 if (response.data.code == 0) {
