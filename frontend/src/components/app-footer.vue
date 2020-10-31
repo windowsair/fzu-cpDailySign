@@ -15,6 +15,9 @@
 </template>
 
 <script>
+import { Message } from 'element-ui'
+
+
 export default {
   data() {
     return {
@@ -25,22 +28,37 @@ export default {
     updateText() {
       const cors = 'https://d-proxy.zme.ink/'
       const url = 'https://api.github.com/repos/windowsair/fzu-cpDailySign/commits/master'
-      this.$axios
-        .get(cors + url, {
-          withCredentials: false,
-        })
-        .then((res) => {
+      this.$axios.get(cors + url, {withCredentials: false}).then((res) => {
           let data = res.data;
 
           let commitTime = data.commit.committer.date
           commitTime = commitTime.replace('T', ' ')
           commitTime = commitTime.replace('Z', ' ')
           this.lastUpdateText = `最后更新于${commitTime}`
-        })
+      })
     },
+    updateAnnouncement(){
+      const cors = 'https://d-proxy.zme.ink/'
+      const url = 'https://gist.githubusercontent.com/windowsair/30c6f0a0a5fe8dfecff3a914e245745f/raw/2e049e3be33d0f1f2f090b4f19591d0adbda0c7f/announcements.json'
+      this.$axios.get(cors + url, {withCredentials: false}).then((res) => {
+          let deadline = res.data[0].deadline
+          let content = res.data[0].content
+          if(Math.round(new Date()) > Date.parse(deadline)){
+            return
+          }
+
+          Message.info({
+            showClose: true,
+            duration: 4000,
+            message: content
+          })
+
+      })
+    }
   },
   mounted() {
     this.updateText()
+    this.updateAnnouncement()
   },
 }
 </script>
