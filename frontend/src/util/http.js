@@ -17,6 +17,9 @@ let loadingInstance
 // 请求拦截器
 axios.interceptors.request.use(
     config => {
+        if(config.url.startsWith('http')){ // 外部域请求
+            return config
+        }
         loadingInstance = Loading.service({
             text: '请稍后...',
             target: '#main-content'
@@ -31,12 +34,17 @@ axios.interceptors.request.use(
 // 响应拦截器
 axios.interceptors.response.use(
     response => {
-        loadingInstance.close()
+        if(loadingInstance){
+            loadingInstance.close()
+        }
+        
         return response
     },
     error => {
         try {
-            loadingInstance.close()
+            if(loadingInstance){
+                loadingInstance.close()
+            }
             
             if (error.response) {
                 let res = error.response

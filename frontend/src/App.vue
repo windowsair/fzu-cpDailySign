@@ -22,6 +22,9 @@
         <tos />
       </div>
     </div>
+
+    <appFooter />
+
   </div>
 </template>
 
@@ -29,6 +32,7 @@
 import registerForm from "@/components/register.vue";
 import tos from "@/components/tos.vue";
 import systemMenu from "@/components/systemMenu.vue";
+import appFooter from "@/components/app-footer.vue";
 
 export default {
   name: "app",
@@ -36,6 +40,7 @@ export default {
     registerForm,
     tos,
     systemMenu,
+    appFooter
   },
   data() {
     return {
