@@ -22,13 +22,14 @@ fzu-cpDailySign 是带有基本前后端的今日校园签到测试工具:wink:
 1. 已经实现的功能
     - [x] 用户注册/登录
     - [x] 手机验证码登录/验证
-    - [x] 手动签到
-    - [x] 签到测试
+    - [x] 手动签到(签到测试)
+    - [x] 自动签到
     - [x] 可选的签到结果推送 iOS Bark / Server酱 / Qmsg酱
     - [x] 历史打卡结果记录
+    - [x] 站点公告/更新时间显示 
     - [ ] ...
 2. 正在测试中的功能
-    - [x] 自动签到
+    - [x] 站点公告推送
 
 
 ----
@@ -84,7 +85,10 @@ $ node app.js
 
 ```bash
 $ pm2 start app.js -i max
+# 目前在编号为10的核心中运行,可能需要根据自身情况进行相应修改,方法同下.
 ```
+
+> 如果不使用pm2进行部署,需要修改`cronSignTask`中的相关内容.具体见[utils.js](backend/components/utils/utils.js)
 
 更多相关的配置，参考:https://pm2.keymetrics.io/docs/usage/pm2-doc-single-page/
 
