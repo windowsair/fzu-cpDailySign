@@ -193,7 +193,7 @@ async function signTask(userID, loginData) {
     let loginCookie = loginData.cookie
 
     async function getNewCookie() {
-        let result = await relogin(loginData)
+        let result = await relogin(cpDailyInfo, loginData)
 
         if (result == 0) {
             return { code: 0, msg: '无需获取', data: loginCookie }

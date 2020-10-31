@@ -206,7 +206,7 @@ async function loginGetCookie(cpDailyInfo, loginData) {
 
 
 // 重新获取新的Cookie
-async function relogin(loginData) {
+async function relogin(cpDailyInfo, loginData) {
     // 相关数据的加密
     let des = new crypto.DESCrypto
     let rawSessionToken = loginData.sessionToken
@@ -257,10 +257,12 @@ async function relogin(loginData) {
                     resolve(0) // 仍然存活,不需要登录
                 }
                 else {
+                    console.log('未存活')
                     console.log(response.data)
                     resolve(-1)
                 }
             } catch (error) {
+                console.log('未存活')
                 console.log(response)
                 resolve(-1)
             }
