@@ -39,11 +39,16 @@ export default {
     },
     updateAnnouncement(){
       const cors = 'https://d-proxy.zme.ink/'
-      const url = 'https://gist.githubusercontent.com/windowsair/30c6f0a0a5fe8dfecff3a914e245745f/raw/2e049e3be33d0f1f2f090b4f19591d0adbda0c7f/announcements.json'
+      // 使用Github gists 存储站点的公告
+      const gistID = '30c6f0a0a5fe8dfecff3a914e245745f'
+      const url = `https://api.github.com/gists/${gistID}`
       this.$axios.get(cors + url, {withCredentials: false}).then((res) => {
-          let deadline = res.data[0].deadline
-          let content = res.data[0].content
-          if(Math.round(new Date()) > Date.parse(deadline)){
+          // 应该保证content内容不过大,否则将导致截断
+          const data = JSON.parse(res.data.files['announcements.json'].content)
+          let deadline = data[0].deadline
+          let content = data[0].content
+          let display = data[0].display
+          if(Math.round(new Date()) > Date.parse(deadline) && !display){
             return
           }
 
