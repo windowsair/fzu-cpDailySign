@@ -249,7 +249,7 @@ async function relogin(cpDailyInfo, loginData) {
         },
         maxRedirects: 0 // 不进行重定向
     }
-    console.log(config)
+    //console.log(config)
     return new Promise(resolve => {
         axios(config).then(response => {
             try {

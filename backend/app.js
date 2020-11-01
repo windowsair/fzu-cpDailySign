@@ -51,9 +51,9 @@ const app = express()
 // step2: 配置应用
 
 let redisSessionClient = redis.createClient(redisSetting["redis-session-setting"])
-let redisUserClient = redis.createClient(redisSetting["redis-user-setting"])
+global.redisUserClient = redis.createClient(redisSetting["redis-user-setting"])
+let redisUserClient = global.redisUserClient
 let redisLogClient = redis.createClient(redisSetting["redis-log-setting"])
-
 
 app.use(
     session({

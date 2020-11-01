@@ -188,7 +188,6 @@ async function tryToSign(cookie, cpDailyInfo, form) {
 
 
 async function signTask(userID, loginData) {
-
     const cpDailyInfo = loginData.cpDailyInfo
     let loginCookie = loginData.cookie
 
@@ -220,7 +219,7 @@ async function signTask(userID, loginData) {
             const redisUserLoginData = {
                 loginData: JSON.stringify(loginData)
             }
-            let client = new RedisOP(redisUserClient)
+            let client = new RedisOP(global.redisUserClient)
             await client.setValue(userID, redisUserLoginData)
 
             return { code: 0, msg: 'OK', data: result }
