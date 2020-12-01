@@ -8,10 +8,10 @@ class FillExtension {
     #extension = {
         'lon': 119.204299, // 福大的经纬度
         'lat': 26.064609,
-        'model': 'PCRT00',
-        'appVersion': '8.0.8',
-        'systemVersion': '4.4.4',
-        'systemName': 'android',
+        'model': 'iPhone10,1',
+        'appVersion': '8.2.9',
+        'systemVersion': '13.3.1',
+        'systemName': 'iOS',
         'userId': '', // 稍后构造, 注意大小写
         'deviceId': ''
     }

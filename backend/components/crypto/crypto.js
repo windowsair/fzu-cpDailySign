@@ -1,5 +1,6 @@
 class DESCrypto {
-    #key = 'XCE927=='
+    //#key = 'XCE927=='
+    #key = 'ST83=@XV'
     #iv = Buffer.from([0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8])
 
     encrypt(str) {

@@ -13,7 +13,7 @@ async function getUnsignedTasks(cookie) {
             'Connection': 'keep-alive',
             'Accept': 'application/json, text/plain, */*',
             'X-Requested-With': 'XMLHttpRequest',
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 4.4.4; PCRT00 Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/33.0.0.0 Safari/537.36 cpdaily/8.0.8 wisedu/8.0.8',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 (4471302144)cpdaily/8.2.9  wisedu/8.2.9',
             'Content-Type': 'application/json',
             'Accept-Encoding': 'gzip,deflate',
             'Accept-Language': 'zh-CN,en-US;q=0.8',
@@ -51,7 +51,7 @@ async function getDetailTask(cookie, task) {
         url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/detailSignTaskInst`,
         headers: {
             'Accept': 'application/json, text/plain, */*',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 (4471302144)cpdaily/8.2.9  wisedu/8.2.9',
             'content-type': 'application/json',
             'Accept-Encoding': 'gzip,deflate',
             'Accept-Language': 'zh-CN,en-US;q=0.8',
@@ -155,14 +155,12 @@ async function tryToSign(cookie, cpDailyInfo, form) {
         method: 'post',
         url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/completeSignIn`,
         headers: {
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 4.4.4; OPPO R11 Plus Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/33.0.0.0 Safari/537.36 okhttp/3.12.4',
-            'CpdailyStandAlone': '0',
-            'extension': '1',
+            //'CpdailyStandAlone': '0',
+            //'extension': '1',
             'Content-Type': 'application/json; charset=utf-8',
             'Accept-Encoding': 'gzip',
-            'Connection': 'Keep-Alive',
-
-            'Cpdaily-Extension': cpDailyInfo,
+            //'Connection': 'Keep-Alive',
+            'Cpdaily-Extension': cpDailyInfo, // 和这个关系很大
             'Cookie': cookie
         },
         data: data
@@ -293,7 +291,7 @@ async function signTask(userID, loginData) {
     }
 
     if (signResult.message != 'SUCCESS') {
-        return { code: 3, msg: `签到失败,原因是${signResult.message}` }
+        return { code: 3, msg: `签到失败,原因是${signResult.message}` + '(如果提示版本过低，请重新验证手机号码)' }
     }
 
     return { code: 0, msg: 'OK' }

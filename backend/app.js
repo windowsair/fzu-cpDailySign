@@ -291,7 +291,7 @@ app.post('/api/verifyPhone', (req, res) => {
             }
             try {
                 if (value.errMsg != null) {
-                    response = { code: 2, msg: val.errMsg }
+                    response = { code: 2, msg: value.errMsg }
                 }
             }
             catch {
