@@ -23,7 +23,7 @@ class FillExtension {
     // 获取加密后的数据字符串
     getInfo() {
         let des = new crypto.DESCrypto
-        return des.encrypt(JSON.stringify(this.#extension))
+        return des.encryptWithKey(JSON.stringify(this.#extension), 'ST83=@XV')
     }
 }
 
@@ -37,7 +37,7 @@ function getCpDailyInfo(username) {
 function getMessageCode(cpDailyInfo, phone) {
     let des = new crypto.DESCrypto
     let data = {
-        mobile: des.encrypt(String(phone)),
+        mobile: des.encryptWithKey(String(phone), 'ST83=@XV'),
     }
 
     let config = {
@@ -93,8 +93,8 @@ async function verifyUserLogin(cpDailyInfo, sessionData) {
     // 相关数据的加密
     let des = new crypto.DESCrypto
     let rawSessionToken = sessionData.sessionToken
-    let encryptSessionToken = des.encrypt(sessionData.sessionToken)
-    let encrypTgc = des.encrypt(sessionData.tgc)
+    let encryptSessionToken = des.encryptWithKey(sessionData.sessionToken, 'XCE927==')
+    let encrypTgc = des.encryptWithKey(sessionData.tgc, 'XCE927==')
 
     let data = {
         tgc: encrypTgc,
@@ -130,8 +130,8 @@ async function loginGetCookie(cpDailyInfo, loginData) {
     // 相关数据的加密
     let des = new crypto.DESCrypto
     let rawSessionToken = loginData.sessionToken
-    let encryptSessionToken = des.encrypt(rawSessionToken)
-    let encryptTgc = des.encrypt(loginData.tgc)
+    let encryptSessionToken = des.encryptWithKey(rawSessionToken, 'XCE927==')
+    let encryptTgc = des.encryptWithKey(loginData.tgc, 'XCE927==')
 
     let amp = {
         AMP1: [{
@@ -144,17 +144,17 @@ async function loginGetCookie(cpDailyInfo, loginData) {
         }]
     }
     amp = JSON.stringify(amp)
-    encryptAmp = des.encrypt(amp)
+    encryptAmp = des.encryptWithKey(amp, 'XCE927==')
 
     let config = {
         method: 'get',
         url: `https://${fzuAuth.host}/wec-portal-mobile/client/userStoreAppList`,
         headers: {
             'clientType': 'cpdaily_student',
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 4.4.4; PCRT00 Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/33.0.0.0 Safari/537.36 okhttp/3.8.1',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 (4471302144)cpdaily/8.2.9  wisedu/8.2.9',
             'deviceType': '1',
             'CpdailyStandAlone': '0',
-            'RetrofitHeader': '8.0.8',
+            //'RetrofitHeader': '8.0.8',
             'Cache-Control': 'max-age=0',
             'Connection': 'Keep-Alive',
             'Accept-Encoding': 'gzip',
@@ -210,8 +210,8 @@ async function relogin(cpDailyInfo, loginData) {
     // 相关数据的加密
     let des = new crypto.DESCrypto
     let rawSessionToken = loginData.sessionToken
-    let encryptSessionToken = des.encrypt(rawSessionToken)
-    let encryptTgc = des.encrypt(loginData.tgc)
+    let encryptSessionToken = des.encryptWithKey(rawSessionToken, 'XCE927==')
+    let encryptTgc = des.encryptWithKey(loginData.tgc, 'XCE927==')
 
     let amp = {
         AMP1: [{
@@ -224,7 +224,7 @@ async function relogin(cpDailyInfo, loginData) {
         }]
     }
     amp = JSON.stringify(amp)
-    encryptAmp = des.encrypt(amp)
+    encryptAmp = des.encryptWithKey(amp, 'XCE927==')
 
     let config = {
         method: 'get',

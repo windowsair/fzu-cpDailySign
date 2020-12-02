@@ -13,6 +13,19 @@ class DESCrypto {
 
         return encrypted
     }
+
+    encryptWithKey(str, key) {
+        const crypto = require('crypto')
+
+        let cipher = crypto.createCipheriv('des-cbc', key, this.#iv)
+        cipher.setAutoPadding(true) // 显式启用PKCS5 padding
+        let encrypted = cipher.update(str, 'utf8', 'base64')
+        encrypted += cipher.final('base64')
+
+        return encrypted 
+    }
+
+
     decrypt(strBase64) {
         const crypto = require('crypto')
 
