@@ -23,7 +23,7 @@ class FillExtension {
     // 获取加密后的数据字符串
     getInfo() {
         let des = new crypto.DESCrypto
-        return des.encryptWithKey(JSON.stringify(this.#extension), 'ST83=@XV')
+        return des.encryptWithKey(JSON.stringify(this.#extension), 'ST83=@XV') // 修改这里
     }
 }
 
@@ -42,7 +42,7 @@ function getMessageCode(cpDailyInfo, phone) {
 
     let config = {
         method: 'post',
-        url: 'https://www.cpdaily.com/v6/auth/authentication/mobile/messageCode',
+        url: 'https://mobile.campushoy.com/v6/auth/authentication/mobile/messageCode',
         headers: headerCommon,
         data: data
     }
@@ -70,7 +70,7 @@ async function verifyMessageCode(cpDailyInfo, phone, msgCode) {
 
     let config = {
         method: 'post',
-        url: 'https://www.cpdaily.com/v6/auth/authentication/mobileLogin',
+        url: 'https://mobile.campushoy.com/v6/auth/authentication/mobileLogin',
         headers: headerCommon,
         data: data
     }
@@ -102,7 +102,7 @@ async function verifyUserLogin(cpDailyInfo, sessionData) {
 
     let config = {
         method: 'post',
-        url: 'https://www.cpdaily.com/v6/auth/authentication/validation',
+        url: 'https://mobile.campushoy.com/v6/auth/authentication/validation',
         headers: headerCommon,
         data: data
     }

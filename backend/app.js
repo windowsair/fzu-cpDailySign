@@ -354,18 +354,26 @@ app.post('/api/verifyMsgCode', (req, res) => {
         }
 
 
-        // step2: 进行登录验证
-        const sessionData = verifyResult.data
-        let loginResult = await verifyUserLogin(cpDailyInfo, sessionData)
 
-        result = verifyHelper('在登录验证阶段', loginResult)
-        if (!result) {
-            return
+        /////////////////////////////////////////////////////////
+        // // step2: 进行登录验证
+        // const sessionData = verifyResult.data
+        // let loginResult = await verifyUserLogin(cpDailyInfo, sessionData)
+
+        // result = verifyHelper('在登录验证阶段', loginResult)
+        // if (!result) {
+        //     return
+        // }
+        // const loginData = loginResult.data
+        // const tgcData = loginData.tgc // 注意这里
+        /////////////////////////////////////////////////////////
+
+
+        const tgcData = verifyResult.data.tgc
+        const loginData = {
+            tgc: verifyResult.data.tgc, 
+            sessionToken: verifyResult.data.sessionToken
         }
-
-
-        const loginData = loginResult.data
-        const tgcData = loginData.tgc
 
         // step3: 获取Cookie
         let cookie = await loginGetCookie(cpDailyInfo, loginData)

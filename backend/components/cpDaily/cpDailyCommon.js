@@ -14,7 +14,7 @@ const headerCommon = {
     'RetrofitHeader': '8.0.8',
     'Cache-Control': 'max-age=0',
     'Content-Type': 'application/json; charset=UTF-8',
-    'Host': 'www.cpdaily.com',
+    //'Host': 'www.cpdaily.com',
     'Connection': 'Keep-Alive',
     'Accept-Encoding': 'gzip',
 

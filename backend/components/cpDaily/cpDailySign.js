@@ -155,11 +155,8 @@ async function tryToSign(cookie, cpDailyInfo, form) {
         method: 'post',
         url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/completeSignIn`,
         headers: {
-            //'CpdailyStandAlone': '0',
-            //'extension': '1',
             'Content-Type': 'application/json; charset=utf-8',
             'Accept-Encoding': 'gzip',
-            //'Connection': 'Keep-Alive',
             'Cpdaily-Extension': cpDailyInfo, // 和这个关系很大
             'Cookie': cookie
         },
@@ -263,7 +260,7 @@ async function signTask(userID, loginData) {
 
     // step3: 获取具体的签到任务
 
-    // 目前的今日校园大概获取不到未开始的
+
     const lastTask = unsignedTaskResult.datas.unSignedTasks[0]
     //const lastTask = unsignedTaskResult.datas.signedTasks[0] 
 
