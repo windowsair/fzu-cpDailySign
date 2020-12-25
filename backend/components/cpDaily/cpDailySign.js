@@ -8,7 +8,7 @@ async function getUnsignedTasks(cookie) {
 
     let config = {
         method: 'post',
-        url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/queryDailySginTasks`, //  queryDailySginTasks  getStuSignInfosInOneDay
+        url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/getStuSignInfosInOneDay`, //  queryDailySginTasks  getStuSignInfosInOneDay
         headers: {
             'Connection': 'keep-alive',
             'Accept': 'application/json, text/plain, */*',
@@ -48,7 +48,7 @@ async function getDetailTask(cookie, task) {
 
     let config = {
         method: 'post',
-        url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/detailSignTaskInst`,
+        url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/detailSignInstance`, // detailSignInstance detailSignTaskInst
         headers: {
             'Accept': 'application/json, text/plain, */*',
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 (4471302144)cpdaily/8.2.9  wisedu/8.2.9',
@@ -153,7 +153,7 @@ async function tryToSign(cookie, cpDailyInfo, form) {
 
     let config = {
         method: 'post',
-        url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/completeSignIn`,
+        url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/submitSign`, // completeSignIn submitSign
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
             'Accept-Encoding': 'gzip',
