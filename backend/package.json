@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "await-to-js": "^2.1.1",
     "axios": "^0.20.0",
     "axios-cached-dns-resolve": "^0.5.2",
     "body-parser": "^1.19.0",

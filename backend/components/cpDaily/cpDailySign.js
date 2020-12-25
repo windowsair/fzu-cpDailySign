@@ -1,4 +1,4 @@
-const { fzuAuth } = require('./cpDailyCommon')
+const { fzuAuth, doSignRes } = require('./cpDailyCommon')
 const axios = require('axios')
 const { relogin } = require('../cpDaily/cpDailyLogin')
 const { RedisOP } = require('../redis/redis-operation')
@@ -26,21 +26,7 @@ async function getUnsignedTasks(cookie) {
     }
 
 
-    return new Promise(resolve => {
-        axios(config)
-            .then(response => {
-                if (typeof response.data != 'object') {
-                    resolve(null)
-                }
-                else {
-                    resolve(response.data)
-                }
-            })
-            .catch(error => {
-                console.log(error)
-                resolve(null)
-            })
-    })
+    return doSignRes(config)
 }
 
 async function getDetailTask(cookie, task) {
@@ -62,22 +48,7 @@ async function getDetailTask(cookie, task) {
         data: data
     }
 
-
-    return new Promise(resolve => {
-        axios(config)
-            .then(response => {
-                if (typeof response.data != 'object') {
-                    resolve(null)
-                }
-                else {
-                    resolve(response.data)
-                }
-            })
-            .catch(error => {
-                console.log(error)
-                resolve(null)
-            })
-    })
+    return doSignRes(config)
 }
 
 function signFormFill(task) {
@@ -144,7 +115,6 @@ function signFormFill(task) {
 
 
     return { code: 0, msg: 'OK', data: form }
-
 }
 
 
@@ -164,21 +134,7 @@ async function tryToSign(cookie, cpDailyInfo, form) {
     }
 
 
-    return new Promise(resolve => {
-        axios(config)
-            .then(response => {
-                if (typeof response.data != 'object') {
-                    resolve(null)
-                }
-                else {
-                    resolve(response.data)
-                }
-            })
-            .catch(error => {
-                console.log(error)
-                resolve(null)
-            })
-    })
+    return doSignRes(config)
 }
 
 

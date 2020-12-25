@@ -1,3 +1,6 @@
+const axios = require('axios')
+const to = require('await-to-js').default
+
 const fzuAuth = {
     'tenantId': 'fzu',
     'login-url':
@@ -23,6 +26,30 @@ const headerCommon = {
 
 }
 
+async function doLoginRes(axiosConfig) {
+    let res, err
+    ;[err, res] = await to(axios(axiosConfig))
+    if(err) {
+        console.log(err)
+        return null
+    }
+    return res.data
+}
+
+async function doSignRes(axiosConfig) {
+    let res, err
+    ;[err, res] = await to(axios(axiosConfig))
+    if(err) {
+        console.log(err)
+        return null
+    }
+    return (typeof res.data == 'object') ? res.data : null;
+
+}
+
+
 
 exports.fzuAuth = fzuAuth
 exports.headerCommon = headerCommon
+exports.doLoginRes = doLoginRes
+exports.doSignRes = doSignRes

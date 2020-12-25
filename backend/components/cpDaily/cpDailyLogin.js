@@ -1,7 +1,8 @@
 const UUID = require('uuid')
 const crypto = require('../crypto/crypto')
 const axios = require('axios')
-const { fzuAuth, headerCommon } = require('./cpDailyCommon')
+const to = require('await-to-js').default
+const { fzuAuth, headerCommon, doLoginRes } = require('./cpDailyCommon')
 
 
 class FillExtension {
@@ -48,16 +49,7 @@ function getMessageCode(cpDailyInfo, phone) {
     }
     config.headers.CpdailyInfo = cpDailyInfo
 
-    return new Promise(resolve => {
-        axios(config)
-            .then(response => {
-                resolve(response.data)
-            })
-            .catch(error => {
-                console.log(error)
-                resolve(null)
-            })
-    })
+    return doLoginRes(config)
 }
 
 
@@ -76,16 +68,7 @@ async function verifyMessageCode(cpDailyInfo, phone, msgCode) {
     }
     config.headers.CpdailyInfo = cpDailyInfo
 
-    return new Promise(resolve => {
-        axios(config)
-            .then(response => {
-                resolve(response.data)
-            })
-            .catch(error => {
-                console.log(error)
-                resolve(null)
-            })
-    })
+    return doLoginRes(config)
 }
 
 // 在提交完验证码之后验证用户是否登录
@@ -110,16 +93,7 @@ async function verifyUserLogin(cpDailyInfo, sessionData) {
     config.headers.SessionToken = encryptSessionToken // 这里的SessionToken 需要用到刚才短信验证到的Token
     config.headers.Cookie = `sessionToken=${rawSessionToken}`
 
-    return new Promise(resolve => {
-        axios(config)
-            .then(response => {
-                resolve(response.data)
-            })
-            .catch(error => {
-                console.log(error)
-                resolve(null)
-            })
-    })
+    return doLoginRes(config)
 }
 
 // 在登录过程中获取cookie
@@ -170,38 +144,40 @@ async function loginGetCookie(cpDailyInfo, loginData) {
         maxRedirects: 0 // 不进行重定向
     }
 
+    let resSomething, redirect
 
-    return new Promise(resolve => {
-        axios(config).then(response => {
-            console.log(response)
-            resolve(null)
-        }).catch(error => {
-            //// TODO: fzu only
-            config.headers.Host = 'id.fzu.edu.cn'
-            urlRedirect = error.response.headers['location']
-            config.url = urlRedirect
+    ;[redirect, resSomething] = await to(axios(config))
+    if (resSomething) { // 失败
+        console.log(resSomething)
+        return null
+    }
 
-            // 第二次
-            axios(config).then(response => {
-                console.log(response)
-                resolve(null)
-            }).catch(error => {
-                config.headers.Host = fzuAuth.host
-                urlRedirect = error.response.headers['location']
-                config.url = urlRedirect
+    // step2: 重定向
+    //// TODO: fzu only
+    config.headers.Host = 'id.fzu.edu.cn'
+    urlRedirect = redirect.response.headers['location']
+    config.url = urlRedirect
 
-                // 第三次
-                axios(config).then(response => {
-                    console.log(response)
-                    resolve(null)
-                }).catch(error => {
-                    resolve(error.response.headers)
-                })
+    
+    ;[redirect, resSomething] = await to(axios(config))
+    if (resSomething) {
+        console.log(resSomething)
+        return null
+    }
 
-            })
+    // step3: 重定向
+    config.headers.Host = fzuAuth.host
+    urlRedirect = redirect.response.headers['location']
+    config.url = urlRedirect
 
-        })
-    })
+
+    ;[redirect, resSomething] = await to(axios(config))
+    if (resSomething) {
+        console.log(resSomething)
+        return null
+    }
+
+    return redirect.response.headers
 }
 
 
@@ -249,114 +225,53 @@ async function relogin(cpDailyInfo, loginData) {
         },
         maxRedirects: 0 // 不进行重定向
     }
-    //console.log(config)
-    return new Promise(resolve => {
-        axios(config).then(response => {
-            try {
-                if (response.data.code == 0) {
-                    resolve(0) // 仍然存活,不需要登录
-                }
-                else {
-                    console.log('未存活')
-                    console.log(response.data)
-                    resolve(-1)
-                }
-            } catch (error) {
-                console.log('未存活')
-                console.log(response)
-                resolve(-1)
+
+    let res, err, resSomething, redirect
+    ;[redirect, resSomething] = await to(axios(config))
+    if (resSomething) {
+        try {
+            if (resSomething.data.code == 0) {
+                return 0 // 仍然存活,不需要登录
             }
+            else {
+                console.log('未存活')
+                console.log(resSomething.data)
+                return -1
+            }
+        } catch (error) {
+            console.log('未存活')
+            console.log(error)
+            return -1
+        }
+    }
 
-        }).catch(error => {
-            // TODO: fzu only
-            config.headers.Host = 'id.fzu.edu.cn'
-            config.headers.Cookie = `CASTGC=${loginData.tgc}; AUTHTGC=${encryptTgc}`
-            urlRedirect = error.response.headers['location']
-            config.url = urlRedirect
+    // 开始获取新的Cookie
+    config.headers.Host = 'id.fzu.edu.cn'
+    config.headers.Cookie = `CASTGC=${loginData.tgc}; AUTHTGC=${encryptTgc}`
+    urlRedirect = redirect.response.headers['location']
+    config.url = urlRedirect
 
+    
+    ;[redirect, resSomething] = await to(axios(config))
+    if(resSomething) {
+        console.log(resSomething)
+        return null
+    }
 
-            // 第二次
-            axios(config).then(response => {
-                resolve(null)
-            }).catch(error => {
-                config.headers.Host = fzuAuth.host
-                urlRedirect = error.response.headers['location']
-                config.url = urlRedirect
+    // 继续进行重定向
+    config.headers.Host = fzuAuth.host
+    urlRedirect = redirect.response.headers['location']
+    config.url = urlRedirect
 
-                // 第三次
-                axios(config).then(response => {
-                    resolve(null)
-                }).catch(error => {
-                    resolve(error.response.headers)
-                })
+    
+    ;[redirect, resSomething] = await to(axios(config))
+    if (resSomething) {
+        console.log(resSomething)
+        return null
+    }
 
-            })
-
-        })
-    })
+    return redirect.response.headers
 }
-
-
-// async function getModAuthCAS(loginData) {
-//     // 相关数据的加密
-//     let rawSessionToken = loginData.sessionToken
-
-
-//     let config0 = {
-//         method: 'get',
-//         url: 'https://www.cpdaily.com/connect/oauth2/authorize?response_type=code&client_id=10000000000000001&scope=get_user_info&state=cpdaily-uag&redirect_uri=http%3A%2F%2Fopen.cpdaily.com%3A80%2Fwec-open-app%2Fapp%2FuserAppListGroupByCategory',
-//         headers: {
-//             'clientType': 'cpdaily_student',
-//             'User-Agent': 'Mozilla/5.0 (Linux; Android 4.4.4; PCRT00 Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/33.0.0.0 Mobile Safari/537.36 okhttp/3.8.1',
-//             'deviceType': '1',
-//             'CpdailyStandAlone': '0',
-//             'RetrofitHeader': '8.0.8',
-//             'Cache-Control': 'max-age=0',
-//             'Host': 'www.cpdaily.com',
-//             'Connection': 'Keep-Alive',
-//             'Accept-Encoding': 'gzip',
-//             'Accept': '',
-
-//             'tenantId': 'fzu',
-//             'Cookie':
-//                 `acw_tc=123; clientType=cpdaily_student; tenantId=${fzuAuth.tenantId}; sessionToken=${rawSessionToken}`,
-//         },
-//         maxRedirects: 0,
-//     }
-
-//     let config1 = {
-//         method: 'get',
-//         url: '',
-//         headers: {},
-//         maxRedirects: 0
-//     }
-
-//     return new Promise(resolve => {
-//         axios(config0)
-//             .then(response => {
-//                 console.log(response)
-//                 resolve(null)
-//             })
-//             .catch(error => {
-//                 // 第一次
-//                 urlRedirect = error.response.headers['location']
-//                 // 转换为http
-//                 urlRedirect = urlRedirect.replace(':80', '')
-//                 urlRedirect = urlRedirect.replace('http', 'https')
-//                 config1.url = urlRedirect
-
-//                 // 进行第二次重定向请求
-//                 axios(config1).then(response => {
-//                     // 有可能在这里提示未登录
-//                     console.log(response)
-//                     resolve(null)
-//                 }).catch(error => {
-//                     resolve(error.response.headers)
-//                 })
-//             })
-//     })
-// }
-
 
 exports.getCpDailyInfo = getCpDailyInfo
 exports.getMessageCode = getMessageCode
