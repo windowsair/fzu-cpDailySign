@@ -13,7 +13,7 @@ async function getUnsignedTasks(cookie) {
             'Connection': 'keep-alive',
             'Accept': 'application/json, text/plain, */*',
             'X-Requested-With': 'XMLHttpRequest',
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 (4471302144)cpdaily/8.2.9  wisedu/8.2.9',
+            'User-Agent': 'CampusNext/8.2.14 (iPhone; iOS 13.3.1; Scale/2.00)',
             'Content-Type': 'application/json',
             'Accept-Encoding': 'gzip,deflate',
             'Accept-Language': 'zh-CN,en-US;q=0.8',
@@ -37,7 +37,7 @@ async function getDetailTask(cookie, task) {
         url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/detailSignInstance`, // detailSignInstance detailSignTaskInst
         headers: {
             'Accept': 'application/json, text/plain, */*',
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 (4471302144)cpdaily/8.2.9  wisedu/8.2.9',
+            'User-Agent': 'CampusNext/8.2.14 (iPhone; iOS 13.3.1; Scale/2.00)',
             'content-type': 'application/json',
             'Accept-Encoding': 'gzip,deflate',
             'Accept-Language': 'zh-CN,en-US;q=0.8',
@@ -62,7 +62,8 @@ function signFormFill(task) {
 
 
         abnormalReason: '', // 不在签到范围的反馈原因,可以不填
-        position: '福州大学第二田径场' // 注意位置的填写
+        position: '福州大学第二田径场', // 注意位置的填写
+        uaIsCpadaily: true
     }
 
     extraData = []
@@ -218,7 +219,7 @@ async function signTask(userID, loginData) {
 
 
     const lastTask = unsignedTaskResult.datas.unSignedTasks[0]
-    //const lastTask = unsignedTaskResult.datas.signedTasks[0] 
+    //const lastTask = unsignedTaskResult.datas.signedTasks[0]
 
     const lastTaskField = {
         signInstanceWid: lastTask.signInstanceWid,

@@ -1,6 +1,18 @@
 const axios = require('axios')
 const to = require('await-to-js').default
 
+const cryptoInfo = {
+    'publicDynamicKey':
+        '-----BEGIN RSA PUBLIC KEY-----\n' +
+        'MIGJAoGBALkvQQORe9z0Okh8OvKFbdd4bad1MiYlKdcxuXkjQWD2AvX8mRxAtpKd\n' +
+        'EIC0K2WB07q7Hm1hXB8/NFhVFNJPA30Ox8IlehzMTHSqQRz3Y/8mQGo0l/ucc02d\n' +
+        '+M0XICosCnX6gC2M9Pwq/yQurZBaO8/XUAHg3hoN8D9mIQUoCRHJAgMBAAE=\n' +
+        '-----END RSA PUBLIC KEY-----',
+
+    'publicDynamicKeyVersion': 'firstv',
+    'md5Salt': '2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824', // 'hello'
+}
+
 const fzuAuth = {
     'tenantId': 'fzu',
     'login-url':
@@ -11,10 +23,10 @@ const fzuAuth = {
 const headerCommon = {
     'SessionToken': 'szFn6zAbjjU=',
     'clientType': 'cpdaily_student',
-    'User-Agent': 'Mozilla/5.0 (Linux; Android 4.4.4; PCRT00 Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/33.0.0.0 Safari/537.36 okhttp/3.8.1',
+    'User-Agent': 'CampusNext/8.2.14 (iPhone; iOS 13.3.1; Scale/2.00)',
     'deviceType': '1',
     'CpdailyStandAlone': '0',
-    'RetrofitHeader': '8.0.8',
+    // 'RetrofitHeader': '8.0.8',
     'Cache-Control': 'max-age=0',
     'Content-Type': 'application/json; charset=UTF-8',
     //'Host': 'www.cpdaily.com',
@@ -29,7 +41,7 @@ const headerCommon = {
 async function doLoginRes(axiosConfig) {
     let res, err
     ;[err, res] = await to(axios(axiosConfig))
-    if(err) {
+    if (err) {
         console.log(err)
         return null
     }
@@ -39,7 +51,7 @@ async function doLoginRes(axiosConfig) {
 async function doSignRes(axiosConfig) {
     let res, err
     ;[err, res] = await to(axios(axiosConfig))
-    if(err) {
+    if (err) {
         console.log(err)
         return null
     }
@@ -53,3 +65,4 @@ exports.fzuAuth = fzuAuth
 exports.headerCommon = headerCommon
 exports.doLoginRes = doLoginRes
 exports.doSignRes = doSignRes
+exports.cryptoInfo = cryptoInfo

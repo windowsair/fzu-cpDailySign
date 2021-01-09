@@ -22,7 +22,7 @@ class DESCrypto {
         let encrypted = cipher.update(str, 'utf8', 'base64')
         encrypted += cipher.final('base64')
 
-        return encrypted 
+        return encrypted
     }
 
 
@@ -58,5 +58,33 @@ class AESCrypto {
     }
 }
 
+
+class HashMD5 {
+    static getMD5String(strToHash) {
+        const crypto = require('crypto')
+        return crypto.createHash('md5').update(strToHash).digest('hex')
+    }
+}
+
+class RSACrypto {
+    static encrypt(data, publicKey) {
+        const crypto = require('crypto')
+
+        const opts = {
+            key: publicKey,
+            padding: crypto.constants.RSA_PKCS1_PADDING,
+        }
+        const encryptedData = crypto.publicEncrypt(
+            opts,
+            Buffer.from(data)
+        )
+
+        return encryptedData.toString("base64")
+    }
+}
+
+
 exports.DESCrypto = DESCrypto
 exports.AESCrypto = AESCrypto
+exports.HashMD5 = HashMD5
+exports.RSACrypto = RSACrypto

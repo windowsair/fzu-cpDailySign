@@ -22,7 +22,7 @@ const queryTaskCommonHeader = {
 async function querySubmitFormTask(cookie) {
     // let data = {
     //     sessionToken: 'a98f7a9d-4a28-46a6-8c2c-86ae33608a10'
-    // 
+    //
     let data = {
         pageSize: 6,
         pageNumber: 1
@@ -103,7 +103,7 @@ async function getForm(cookie){
 
 async function queryForm(cookie) {
     // step1: 获取总表
-    
+
     let formSubmitTask = await querySubmitFormTask(cookie)
     if (!formSubmitTask) {
         return { code: -1, msg: '系统出错' }

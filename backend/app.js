@@ -371,7 +371,7 @@ app.post('/api/verifyMsgCode', (req, res) => {
 
         const tgcData = verifyResult.data.tgc
         const loginData = {
-            tgc: verifyResult.data.tgc, 
+            tgc: verifyResult.data.tgc,
             sessionToken: verifyResult.data.sessionToken
         }
 

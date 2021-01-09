@@ -2,7 +2,7 @@ const UUID = require('uuid')
 const crypto = require('../crypto/crypto')
 const axios = require('axios')
 const to = require('await-to-js').default
-const { fzuAuth, headerCommon, doLoginRes } = require('./cpDailyCommon')
+const { cryptoInfo, fzuAuth, headerCommon, doLoginRes } = require('./cpDailyCommon')
 
 
 class FillExtension {
@@ -10,7 +10,7 @@ class FillExtension {
         'lon': 119.204299, // 福大的经纬度
         'lat': 26.064609,
         'model': 'iPhone10,1',
-        'appVersion': '8.2.9',
+        'appVersion': '8.2.14',
         'systemVersion': '13.3.1',
         'systemName': 'iOS',
         'userId': '', // 稍后构造, 注意大小写
@@ -24,9 +24,46 @@ class FillExtension {
     // 获取加密后的数据字符串
     getInfo() {
         let des = new crypto.DESCrypto
-        return des.encryptWithKey(JSON.stringify(this.#extension), 'ST83=@XV') // 修改这里
+        return des.encryptWithKey(JSON.stringify(this.#extension), 'ST83=@XV')
     }
 }
+
+function getDynamicKey() {
+    const rsa = crypto.RSACrypto
+    const md5 = crypto.HashMD5
+
+    let newUUID = UUID.v1();
+    let userInfo = `${newUUID}|${cryptoInfo.publicDynamicKeyVersion}`
+
+    let rawEncryptUserInfo = rsa.encrypt(userInfo, cryptoInfo.publicDynamicKey)
+
+    // Base64需要每64Bytes分割
+    // RSA定长, 这里就用硬编码了
+    let tmp = rawEncryptUserInfo
+    let encryptUserInfo = tmp.slice(0,64) + '\r\n' + tmp.slice(64, 128) + '\r\n' + tmp.slice(128)
+
+    const dataToMD5 = `p=${encryptUserInfo}&${cryptoInfo.md5Salt}`
+    const encryptUserInfoMD5 = md5.getMD5String(dataToMD5)
+
+    // 这里直接构造json
+    re1 = new RegExp('\r\n', 'g')
+    re2 = new RegExp('/', 'g')
+    encryptUserInfo = encryptUserInfo.replace(re2, '\\/')
+    encryptUserInfo = encryptUserInfo.replace(re1, '\\r\\n')
+
+    let jsonData = `{\"p\":\"${encryptUserInfo}\",\"s\":\"${encryptUserInfoMD5}\"}`
+
+
+    let config = {
+        method: 'post',
+        url: 'https://mobile.campushoy.com/app/auth/dynamic/secret/getSecretKey/v-8213',
+        headers: headerCommon,
+        data: jsonData
+    }
+
+    return doLoginRes(config)
+}
+
 
 
 function getCpDailyInfo(username) {
@@ -125,7 +162,7 @@ async function loginGetCookie(cpDailyInfo, loginData) {
         url: `https://${fzuAuth.host}/wec-portal-mobile/client/userStoreAppList`,
         headers: {
             'clientType': 'cpdaily_student',
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 (4471302144)cpdaily/8.2.9  wisedu/8.2.9',
+            'User-Agent': 'CampusNext/8.2.14 (iPhone; iOS 13.3.1; Scale/2.00)',
             'deviceType': '1',
             'CpdailyStandAlone': '0',
             //'RetrofitHeader': '8.0.8',
@@ -158,7 +195,7 @@ async function loginGetCookie(cpDailyInfo, loginData) {
     urlRedirect = redirect.response.headers['location']
     config.url = urlRedirect
 
-    
+
     ;[redirect, resSomething] = await to(axios(config))
     if (resSomething) {
         console.log(resSomething)
@@ -207,7 +244,7 @@ async function relogin(cpDailyInfo, loginData) {
         url: `https://${fzuAuth.host}/wec-portal-mobile/client/userStoreAppList`,
         headers: {
             'clientType': 'cpdaily_student',
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 4.4.4; PCRT00 Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/33.0.0.0 Safari/537.36 okhttp/3.8.1',
+            'User-Agent': 'CampusNext/8.2.14 (iPhone; iOS 13.3.1; Scale/2.00)',
             'deviceType': '1',
             'CpdailyStandAlone': '0',
             'RetrofitHeader': '8.0.8',
@@ -251,7 +288,7 @@ async function relogin(cpDailyInfo, loginData) {
     urlRedirect = redirect.response.headers['location']
     config.url = urlRedirect
 
-    
+
     ;[redirect, resSomething] = await to(axios(config))
     if(resSomething) {
         console.log(resSomething)
@@ -263,7 +300,7 @@ async function relogin(cpDailyInfo, loginData) {
     urlRedirect = redirect.response.headers['location']
     config.url = urlRedirect
 
-    
+
     ;[redirect, resSomething] = await to(axios(config))
     if (resSomething) {
         console.log(resSomething)
@@ -280,3 +317,4 @@ exports.verifyUserLogin = verifyUserLogin
 
 exports.loginGetCookie = loginGetCookie
 exports.relogin = relogin
+exports.getDynamicKey = getDynamicKey
