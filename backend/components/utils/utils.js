@@ -3,7 +3,7 @@ const { signTask } = require('../cpDaily/cpDailySign')
 const { notificationSend } = require('../notification/notification')
 /**
  * 判断当前时刻是否处于打卡的时间段内
- * 
+ *
  * @return bool
  */
 function judgeTimeRange() {
@@ -36,8 +36,8 @@ async function takeLongTime() {
 // TODO: 定时删除过时的数据
 /**
  * 将签到过程中的结果记录到数据库中
- * 
- * @param {object} redisClient 
+ *
+ * @param {object} redisClient
  * @param {string} userID 形如'user:9876543210'
  * @param {string} msg 消息
  * @param {string} type 操作类型
@@ -59,8 +59,8 @@ async function logSignMsg(redisClient, userID, msg, type) {
 
 
 /**
- * 
- * @param {object} redisClient 
+ *
+ * @param {object} redisClient
  * @param {string} userID 形如'user:9876543210'
  */
 async function getUserSignLog(redisClient, userID) {
@@ -74,8 +74,8 @@ async function getUserSignLog(redisClient, userID) {
 
 /**
  * 所有用户的定时签到任务
- * 
- * @param {object} redisUserClient 
+ *
+ * @param {object} redisUserClient
  * @param {object} redisLogClient
  * @param {bool} isFirstTime 采取多次签到的形式,第二次之后会在失败的用户中进行.
  */
@@ -101,7 +101,7 @@ function cronSignTask(redisUserClient, redisLogClient) {
             if(userID == '0'){ // 忽略无用项
                 return {code: -1, msg: '未找到有效用户'}
             }
-            logSignMsg(redisLogClient, userID, '未验证手机号', 'warning')
+            await logSignMsg(redisLogClient, userID, '未验证手机号', 'warning')
             return {code: -1, msg: '未找到有效用户'}
         }
 
@@ -163,7 +163,7 @@ function cronSignTask(redisUserClient, redisLogClient) {
         let startTime = new Date().toLocaleString()
         let isFirstTime = await logClient.isKeyExists('failSign')
         isFirstTime = !isFirstTime
-        
+
 
         if (isFirstTime) {
             // 创建一个失败的表
@@ -211,7 +211,7 @@ function cronSignTask(redisUserClient, redisLogClient) {
 
         // 后续任务
         let endTime = new Date().toLocaleString()
-        
+
         let timeLog = {
             startTime: startTime,
             endTime: endTime
@@ -219,9 +219,9 @@ function cronSignTask(redisUserClient, redisLogClient) {
         timeLog = JSON.stringify(timeLog)
         logClient.pushToList('userTimeLog', timeLog)
     }
-    try {  
+    try {
         mainLoop()
-        
+
     } catch (err) {
         console.log(err)
     }
@@ -230,9 +230,9 @@ function cronSignTask(redisUserClient, redisLogClient) {
 
 /**
  * 系统通知推送
- * 
- * @param {object} redisUserClient 
- * @param {object} redisLogClient 
+ *
+ * @param {object} redisUserClient
+ * @param {object} redisLogClient
  */
 function systemNotice(redisUserClient, redisLogClient) {
 
@@ -276,11 +276,11 @@ function systemNotice(redisUserClient, redisLogClient) {
         let startTime = new Date().toLocaleString()
 
         isFirstTime = true;
-        
+
         // 获取用户
         let userList = []
         userList = await userClient.scanKey(0)
-        
+
         if (userList[1].length == 0) { // 没有任何用户
             return
         }
@@ -306,7 +306,7 @@ function systemNotice(redisUserClient, redisLogClient) {
 
         // 后续任务
         let endTime = new Date().toLocaleString()
-        
+
         let timeLog = {
             startTime: startTime,
             endTime: endTime
@@ -314,9 +314,9 @@ function systemNotice(redisUserClient, redisLogClient) {
         timeLog = JSON.stringify(timeLog)
         logClient.pushToList('userTimeLog', timeLog)
     }
-    try {  
+    try {
         mainLoop()
-        
+
     } catch (err) {
         console.log(err)
     }

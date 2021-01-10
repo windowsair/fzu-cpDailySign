@@ -1,8 +1,10 @@
 const UUID = require('uuid')
-const crypto = require('../crypto/crypto')
 const axios = require('axios')
 const to = require('await-to-js').default
-const { cryptoInfo, fzuAuth, headerCommon, doLoginRes } = require('./cpDailyCommon')
+
+const crypto = require('../crypto/crypto')
+const { cryptoInfo, fzuAuth, headerCommon,  } = require('./cpDailyCommon')
+const { doLoginRes, doLoginResWithDecrypt } = require('./cpDailyRequest')
 
 
 class FillExtension {
@@ -23,31 +25,49 @@ class FillExtension {
     }
     // 获取加密后的数据字符串
     getInfo() {
-        let des = new crypto.DESCrypto
-        return des.encryptWithKey(JSON.stringify(this.#extension), 'ST83=@XV')
+        const des = new crypto.DESCrypto
+        return des.encrypt(JSON.stringify(this.#extension),
+            cryptoInfo.verDESKey[0x00])
+    }
+    /**
+     * 获取Cpdaily-Extesion
+     * @param {string} cpDailyInfoEncrypted 已经加密后的cpDailyInfo, Base64表示
+     */
+    static getCpdailyExtension(cpDailyInfoEncrypted) {
+        const des = new crypto.DESCrypto
+
+        let originalInfo = des.decrypt(cpDailyInfoEncrypted, cryptoInfo.verDESKey[0x00])
+        return des.encrypt(originalInfo, cryptoInfo.verDESKey[0x03])
     }
 }
 
+function getCpdailyExtension(cpDailyInfoEncrypted) {
+    return FillExtension.getCpdailyExtension(cpDailyInfoEncrypted)
+}
+
+// 获取动态Key
 function getDynamicKey() {
     const rsa = crypto.RSACrypto
     const md5 = crypto.HashMD5
 
-    let newUUID = UUID.v1();
-    let userInfo = `${newUUID}|${cryptoInfo.publicDynamicKeyVersion}`
+    let newUUID = UUID.v1()
+    let userInfo = `${newUUID}|${cryptoInfo.dynamicKeyVersion}`
 
     let rawEncryptUserInfo = rsa.encrypt(userInfo, cryptoInfo.publicDynamicKey)
 
     // Base64需要每64Bytes分割
     // RSA定长, 这里就用硬编码了
     let tmp = rawEncryptUserInfo
-    let encryptUserInfo = tmp.slice(0,64) + '\r\n' + tmp.slice(64, 128) + '\r\n' + tmp.slice(128)
+    let encryptUserInfo = tmp.slice(0, 64) + '\r\n'
+        + tmp.slice(64, 128) + '\r\n'
+        + tmp.slice(128)
 
     const dataToMD5 = `p=${encryptUserInfo}&${cryptoInfo.md5Salt}`
     const encryptUserInfoMD5 = md5.getMD5String(dataToMD5)
 
-    // 这里直接构造json
-    re1 = new RegExp('\r\n', 'g')
-    re2 = new RegExp('/', 'g')
+    // 这里直接构造待发送的json字符串
+    const re1 = new RegExp('\r\n', 'g')
+    const re2 = new RegExp('/', 'g')
     encryptUserInfo = encryptUserInfo.replace(re2, '\\/')
     encryptUserInfo = encryptUserInfo.replace(re1, '\\r\\n')
 
@@ -73,14 +93,15 @@ function getCpDailyInfo(username) {
 
 // 获取绑定的手机验证码
 function getMessageCode(cpDailyInfo, phone) {
-    let des = new crypto.DESCrypto
+    const des = new crypto.DESCrypto
     let data = {
-        mobile: des.encryptWithKey(String(phone), 'ST83=@XV'),
+        a: des.encrypt(String(phone), cryptoInfo.campushoySecret),
+        b: cryptoInfo.dynamicKeyVersion
     }
 
     let config = {
         method: 'post',
-        url: 'https://mobile.campushoy.com/v6/auth/authentication/mobile/messageCode',
+        url: 'https://mobile.campushoy.com/app/auth/authentication/mobile/messageCode/v-8213',
         headers: headerCommon,
         data: data
     }
@@ -91,27 +112,35 @@ function getMessageCode(cpDailyInfo, phone) {
 
 
 async function verifyMessageCode(cpDailyInfo, phone, msgCode) {
+    const des = new crypto.DESCrypto
+    let rawData = {
+        c: String(phone),
+        d: String(msgCode)
+    }
+
+    let encryptedData = des.encrypt(JSON.stringify(rawData), cryptoInfo.campushoySecret)
 
     let data = {
-        loginToken: String(msgCode),
-        loginId: String(phone)
+        a: encryptedData,
+        b: cryptoInfo.dynamicKeyVersion
     }
 
     let config = {
         method: 'post',
-        url: 'https://mobile.campushoy.com/v6/auth/authentication/mobileLogin',
+        url: 'https://mobile.campushoy.com/app/auth/authentication/mobileLogin/v-8213',
         headers: headerCommon,
         data: data
     }
     config.headers.CpdailyInfo = cpDailyInfo
 
-    return doLoginRes(config)
+    return doLoginResWithDecrypt(config, cryptoInfo.campushoySecret)
 }
 
+//// TODO:这个大概可以弃用了, 在8.2.14接口还是不变的
 // 在提交完验证码之后验证用户是否登录
 async function verifyUserLogin(cpDailyInfo, sessionData) {
     // 相关数据的加密
-    let des = new crypto.DESCrypto
+    const des = new crypto.DESCrypto
     let rawSessionToken = sessionData.sessionToken
     let encryptSessionToken = des.encryptWithKey(sessionData.sessionToken, 'XCE927==')
     let encrypTgc = des.encryptWithKey(sessionData.tgc, 'XCE927==')
@@ -136,26 +165,29 @@ async function verifyUserLogin(cpDailyInfo, sessionData) {
 // 在登录过程中获取cookie
 
 
-//// TODO:下个版本解决回调地狱
 async function loginGetCookie(cpDailyInfo, loginData) {
     // 相关数据的加密
-    let des = new crypto.DESCrypto
+    const des = new crypto.DESCrypto
     let rawSessionToken = loginData.sessionToken
-    let encryptSessionToken = des.encryptWithKey(rawSessionToken, 'XCE927==')
-    let encryptTgc = des.encryptWithKey(loginData.tgc, 'XCE927==')
+    let encryptSessionToken = des.encrypt(rawSessionToken, cryptoInfo.verDESKey[0x00])
+    let encryptTgc = des.encrypt(loginData.tgc, cryptoInfo.verDESKey[0x00])
 
     let amp = {
         AMP1: [{
             value: rawSessionToken,
-            name: 'sessionToken'
+            name: 'sessionToken',
+            // path: '/',
+            // domain: '',
         }],
         AMP2: [{
             value: rawSessionToken,
-            name: 'sessionToken'
+            name: 'sessionToken',
+            // path: '/',
+            // domain: '',
         }]
     }
     amp = JSON.stringify(amp)
-    encryptAmp = des.encryptWithKey(amp, 'XCE927==')
+    encryptAmp = des.encrypt(amp, cryptoInfo.verDESKey[0x00])
 
     let config = {
         method: 'get',
@@ -163,9 +195,8 @@ async function loginGetCookie(cpDailyInfo, loginData) {
         headers: {
             'clientType': 'cpdaily_student',
             'User-Agent': 'CampusNext/8.2.14 (iPhone; iOS 13.3.1; Scale/2.00)',
-            'deviceType': '1',
+            'deviceType': '2',
             'CpdailyStandAlone': '0',
-            //'RetrofitHeader': '8.0.8',
             'Cache-Control': 'max-age=0',
             'Connection': 'Keep-Alive',
             'Accept-Encoding': 'gzip',
@@ -221,23 +252,27 @@ async function loginGetCookie(cpDailyInfo, loginData) {
 // 重新获取新的Cookie
 async function relogin(cpDailyInfo, loginData) {
     // 相关数据的加密
-    let des = new crypto.DESCrypto
+    const des = new crypto.DESCrypto
     let rawSessionToken = loginData.sessionToken
-    let encryptSessionToken = des.encryptWithKey(rawSessionToken, 'XCE927==')
-    let encryptTgc = des.encryptWithKey(loginData.tgc, 'XCE927==')
+    let encryptSessionToken = des.encrypt(rawSessionToken, cryptoInfo.verDESKey[0x00])
+    let encryptTgc = des.encrypt(loginData.tgc, cryptoInfo.verDESKey[0x00])
 
     let amp = {
         AMP1: [{
             value: rawSessionToken,
-            name: 'sessionToken'
+            name: 'sessionToken',
+            // path: '/',
+            // domain: '',
         }],
         AMP2: [{
             value: rawSessionToken,
-            name: 'sessionToken'
+            name: 'sessionToken',
+            // path: '/',
+            // domain: '',
         }]
     }
     amp = JSON.stringify(amp)
-    encryptAmp = des.encryptWithKey(amp, 'XCE927==')
+    encryptAmp = des.encrypt(amp, cryptoInfo.verDESKey[0x00])
 
     let config = {
         method: 'get',
@@ -245,9 +280,9 @@ async function relogin(cpDailyInfo, loginData) {
         headers: {
             'clientType': 'cpdaily_student',
             'User-Agent': 'CampusNext/8.2.14 (iPhone; iOS 13.3.1; Scale/2.00)',
-            'deviceType': '1',
+            'deviceType': '2',
             'CpdailyStandAlone': '0',
-            'RetrofitHeader': '8.0.8',
+
             'Cache-Control': 'max-age=0',
             'Connection': 'Keep-Alive',
             'Accept-Encoding': 'gzip',
@@ -290,7 +325,7 @@ async function relogin(cpDailyInfo, loginData) {
 
 
     ;[redirect, resSomething] = await to(axios(config))
-    if(resSomething) {
+    if (resSomething) {
         console.log(resSomething)
         return null
     }
@@ -317,4 +352,6 @@ exports.verifyUserLogin = verifyUserLogin
 
 exports.loginGetCookie = loginGetCookie
 exports.relogin = relogin
+
 exports.getDynamicKey = getDynamicKey
+exports.getCpdailyExtension = getCpdailyExtension

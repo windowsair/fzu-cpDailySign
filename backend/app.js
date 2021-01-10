@@ -28,7 +28,7 @@ const bodyParser = require('body-parser')
 const Parameter = require('parameter')
 
 
-const { getCpDailyInfo, getMessageCode, verifyMessageCode, verifyUserLogin, loginGetCookie  } = require('./components/cpDaily/cpDailyLogin')
+const { getCpDailyInfo, getMessageCode, verifyMessageCode, verifyUserLogin, loginGetCookie, getCpdailyExtension } = require('./components/cpDaily/cpDailyLogin')
 const { signTask } = require('./components/cpDaily/cpDailySign')
 
 const { notificationSend, getUserNoticeType } = require('./components/notification/notification')
@@ -399,6 +399,7 @@ app.post('/api/verifyMsgCode', (req, res) => {
             return
         }
 
+        let cpdailyExtension = getCpdailyExtension(cpDailyInfo)
 
         // step4: 记录登录数据
         const userLoginData = {
@@ -406,6 +407,7 @@ app.post('/api/verifyMsgCode', (req, res) => {
             cpDailyInfo: cpDailyInfo,
             tgc: tgcData,
             cookie: cookie,
+            cpDailyExtension: cpdailyExtension
         }
         const redisUserLoginData = {
             loginData: JSON.stringify(userLoginData),
@@ -433,7 +435,7 @@ app.post('/api/verifyMsgCode', (req, res) => {
 
 })
 
-
+// 测试用的,线上block掉
 app.get('/good', (req, res) => {
     let response = { code: 0, msg: 'OK' }
     async function mainTask() {

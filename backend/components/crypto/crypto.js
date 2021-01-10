@@ -1,35 +1,31 @@
 class DESCrypto {
-    //#key = 'XCE927=='
-    #key = 'ST83=@XV'
     #iv = Buffer.from([0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8])
 
-    encrypt(str) {
-        const crypto = require('crypto')
-
-        let cipher = crypto.createCipheriv('des-cbc', this.#key, this.#iv)
-        cipher.setAutoPadding(true) // 显式启用PKCS5 padding
-        let encrypted = cipher.update(str, 'utf8', 'base64')
-        encrypted += cipher.final('base64')
-
-        return encrypted
-    }
-
-    encryptWithKey(str, key) {
+    /**
+     * 使用默认的IV block进行加密
+     * @param {*} data 待加密的数据
+     * @param {string} key  DES密钥
+     */
+    encrypt(data, key) {
         const crypto = require('crypto')
 
         let cipher = crypto.createCipheriv('des-cbc', key, this.#iv)
         cipher.setAutoPadding(true) // 显式启用PKCS5 padding
-        let encrypted = cipher.update(str, 'utf8', 'base64')
+        let encrypted = cipher.update(Buffer.from(data), 'utf8', 'base64')
         encrypted += cipher.final('base64')
 
         return encrypted
     }
 
-
-    decrypt(strBase64) {
+    /**
+     * 使用的IV block进行解密
+     * @param {string} strBase64 待解密的数据, Base64表示
+     * @param {string} key DES密钥
+     */
+    decrypt(strBase64, key) {
         const crypto = require('crypto')
 
-        let decipher = crypto.createDecipheriv('des-cbc', this.#key, this.#iv)
+        let decipher = crypto.createDecipheriv('des-cbc', key, this.#iv)
         decipher.setAutoPadding(true) // 显式启用PKCS5 padding
         let decrypted = decipher.update(strBase64, 'base64', 'utf-8')
         decrypted += decipher.final('utf-8')

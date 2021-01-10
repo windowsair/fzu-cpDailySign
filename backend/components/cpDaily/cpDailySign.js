@@ -1,7 +1,9 @@
-const { fzuAuth, doSignRes } = require('./cpDailyCommon')
-const axios = require('axios')
+const { fzuAuth } = require('./cpDailyCommon')
+const { doSignRes } = require('./cpDailyRequest')
 const { relogin } = require('../cpDaily/cpDailyLogin')
 const { RedisOP } = require('../redis/redis-operation')
+
+const Parameter = require('parameter')
 
 async function getUnsignedTasks(cookie) {
     let data = {}
@@ -119,7 +121,7 @@ function signFormFill(task) {
 }
 
 
-async function tryToSign(cookie, cpDailyInfo, form) {
+async function tryToSign(cookie, cpdailyExtension, form) {
     let data = form
 
     let config = {
@@ -128,7 +130,7 @@ async function tryToSign(cookie, cpDailyInfo, form) {
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
             'Accept-Encoding': 'gzip',
-            'Cpdaily-Extension': cpDailyInfo, // 和这个关系很大
+            'Cpdaily-Extension': cpdailyExtension,
             'Cookie': cookie
         },
         data: data
@@ -140,8 +142,27 @@ async function tryToSign(cookie, cpDailyInfo, form) {
 
 
 async function signTask(userID, loginData) {
-    const cpDailyInfo = loginData.cpDailyInfo
-    let loginCookie = loginData.cookie
+    // step0 : 验证字段
+    let parameter = new Parameter({
+        validateRoot: true,
+    })
+    const rule = {
+        cpDailyInfo: { type: 'string' },
+        cpDailyExtension: { type: 'string' },
+        cookie: { type: 'string' },
+    }
+
+    let validateError = parameter.validate(rule, loginData)
+
+    if (validateError != undefined) {
+        return { code: -1, msg: '参数不正确, 请尝试重新验证手机' }
+    }
+
+
+    const cpDailyInfo = loginData.cpDailyInfo // 可用于重新获取Cookie
+    const cpDailyExtension = loginData.cpDailyExtension // 签到用
+
+    let loginCookie = loginData.cookie // cookie可按需更新
 
     async function getNewCookie() {
         let result = await relogin(cpDailyInfo, loginData)
@@ -239,7 +260,7 @@ async function signTask(userID, loginData) {
     }
 
 
-    let signResult = await tryToSign(loginCookie, cpDailyInfo, form.data)
+    let signResult = await tryToSign(loginCookie, cpDailyExtension, form.data)
     if (!signResult) {
         return { code: -1, msg: '签到失败,原因是系统出错' }
     }
