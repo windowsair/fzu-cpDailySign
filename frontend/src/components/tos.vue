@@ -30,16 +30,13 @@ export default {
       this.$store.commit('SET_TOS_DIALOG', false)
       this.$store.commit('LOGGED_IN')
     },
-    test123(){
-      this.$store.commit('SET_TOS_DIALOG', true)
-    }
   },
   computed: {
     tosDialogVisible: function(){
       return this.$store.state.tosDialogVisible
     }
   }
-  
+
 }
 </script>
 

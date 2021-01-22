@@ -5,6 +5,7 @@
     ref="registerForm"
     label-width="100px"
     class="registerForm"
+    @submit.native.prevent
   >
     <el-form-item label="学号" prop="studentID">
       <el-input v-model="registerForm.studentID"></el-input>
@@ -16,7 +17,7 @@
 
     <el-form-item label="验证码" prop="cap">
       <el-col :span="11" class="register-cap-input">
-        <el-input v-model="registerForm.cap" placeholder="请输入验证码"></el-input>
+        <el-input v-model="registerForm.cap" placeholder="请输入验证码" @keyup.enter.native="submitForm('registerForm')"></el-input>
       </el-col>
 
       <el-col :span="11" class="register-cap-img">
@@ -46,7 +47,7 @@
 
 <script>
 //import {login} from '@/util/request-api'
-import { Message } from 'element-ui' 
+import { Message } from 'element-ui'
 
 export default {
   data() {
@@ -87,7 +88,7 @@ export default {
       forceCapReload: 0,
       testData: this.$store.state.loggedIn,
       ///fullscreenLoading: false,
-    } 
+    }
   },
   methods: {
     submitForm(formName) {
@@ -96,15 +97,15 @@ export default {
           this.$axios
             .post('/api/login', this.$qs.stringify(this.registerForm))
             .then((res) => {
-              let data = res.data 
+              let data = res.data
               if (data.code != 0) {
-                this.updateCap() 
+                this.updateCap()
                 Message({
                   message: data.msg,
                   type: 'error',
                   duration: 0,
                   showClose: true,
-                }) 
+                })
               } else {
                 Message({
                   message: '成功登陆',
@@ -115,22 +116,22 @@ export default {
                 this.$store.commit('SET_STUDENTID',
                   this.registerForm.studentID
                 )
-                this.$store.commit('SET_PHONE', this.registerForm.phone) 
-                this.$store.commit('SET_TOS_DIALOG', true) 
+                this.$store.commit('SET_PHONE', this.registerForm.phone)
+                this.$store.commit('SET_TOS_DIALOG', true)
               }
             })
             .catch((error) => {
-              console.log(error) 
-            }) 
+              console.log(error)
+            })
         } else {
-          return false 
+          return false
         }
-      }) 
+      })
     },
     updateCap() {
       const rawCapUrl = this.capUrl
       let num = Math.ceil(Math.random() * 10000)
-      this.capUrl = `${rawCapUrl}?${num}` 
+      this.capUrl = `${rawCapUrl}?${num}`
     },
   },
 }

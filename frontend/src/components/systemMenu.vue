@@ -18,13 +18,19 @@
         <i class="el-icon-check el-icon--right"></i>
       </el-button>
 
-      <el-button type="warning" round style="margin-left: 10px" @click="getHistoryLog">
-        历史记录
-        <i class="el-icon-s-promotion el-icon--right"></i>
+      <el-button type="info" round style="margin-left: 10px" @click="getTaskSetting">
+        打卡设置
+        <i class="el-icon-setting el-icon--right"></i>
       </el-button>
     </el-row>
 
     <el-row class="menu-btn">
+
+      <el-button type="warning" round style="margin-right: 10px" @click="getHistoryLog">
+        历史记录
+        <i class="el-icon-s-promotion el-icon--right"></i>
+      </el-button>
+
       <el-popconfirm
         confirmButtonText="是的"
         cancelButtonText="取消"
@@ -33,8 +39,8 @@
         title="确定要退出登录吗?"
         @onConfirm="logOut()"
       >
-        <el-button type="danger" slot="reference" round>
-          退 出
+        <el-button type="danger" slot="reference" round style="margin-left: 10px">
+          退出登录
           <i class="el-icon-switch-button el-icon--right"></i>
         </el-button>
       </el-popconfirm>
@@ -43,6 +49,7 @@
     <verifyPhone ref="verifyPhone" />
     <notification ref="notification" />
     <historyLog ref="historyLog" :gridData="gridData" />
+    <signTaskSetting ref="signTaskSetting" :autoTaskStatus="autoTaskStatus" />
   </div>
 </template>
 
@@ -52,6 +59,7 @@ import { Message } from 'element-ui'
 import verifyPhone from './verifyPhone.vue'
 import notification from './notification.vue'
 import historyLog from './historyLog.vue'
+import signTaskSetting from './signTaskSetting.vue'
 
 import { judgeTimeRange, fillLogData } from '@/util/util'
 
@@ -60,6 +68,7 @@ export default {
     verifyPhone,
     notification,
     historyLog,
+    signTaskSetting,
   },
   mounted() {
     if (localStorage.phone && localStorage.studentID) {
@@ -76,6 +85,10 @@ export default {
         studentID: '',
       },
       gridData: [],
+      autoTaskStatus: {
+        formTask: false,
+        signTask: true
+      }
     }
   },
   methods: {
@@ -110,6 +123,19 @@ export default {
             this.gridData = fillLogData(data.data)
             this.$refs.historyLog.showDialog()
           }
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    getTaskSetting() {
+      this.$refs.signTaskSetting.showDialog() //// TODO: 删除此项
+      this.$axios
+        .post('/api/getRemoteSetting', this.$qs.stringify(this.apiKeyForm))
+        .then((res) => {
+          console.log(res.data)
+           //if (data.code == something) then...
+          this.$refs.historyLog.showDialog()
         })
         .catch((err) => {
           console.log(err)

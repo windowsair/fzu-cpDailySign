@@ -132,18 +132,26 @@ body {
 @media screen and (max-height: 752px) {
   .register-content {
     height: 554px;
-    margin-top: -277px;
+    margin-top: 0px;
+    top: 8vh;
+  }
+
+}
+
+@media screen and (max-width: 650px) {
+  .register-content{
+    height: 98vh;
+    margin-top: 0px;
+    top: 1vh;
   }
   .register-content .register-guide {
-    margin: 30px 0 0 39px;
+    margin: 2% 0 !important;
   }
+
 }
 
 .register-content .register-guide {
   margin: 50px 0 22px 0px;
-}
-
-.register-content .register-guide {
   font-size: 36px;
   color: #000;
   padding-bottom: 4px;
@@ -199,9 +207,22 @@ body {
 .el-dialog.custom-dialog {
   width: 50%;
 }
+
+.el-dialog.custom-dialog-big {
+  width: 60%;
+}
+
+.el-dialog.custom-dialog-big .el-dialog__body {
+  padding: 30px 20px 0px 20px;
+}
+
+
 @media screen and (max-width: 780px) {
   .el-dialog.custom-dialog {
     width: 70%;
+  }
+  .el-dialog.custom-dialog-big {
+    width: 80%;
   }
 }
 
@@ -209,11 +230,64 @@ body {
   .el-dialog.custom-dialog {
     width: 80%;
   }
+  .el-dialog.custom-dialog-big {
+    width: 90%;
+  }
 }
 
 @media screen and (max-width: 400px) {
   .el-dialog.custom-dialog {
     width: 85%;
   }
+  .el-dialog.custom-dialog-big {
+    width: 95%;
+  }
+
+  .el-message {
+    min-width: 90% !important;
+    width: 90% !important;
+  }
+
 }
+
+@media screen and (max-height: 700px) {
+  .el-dialog.custom-dialog-big {
+    margin-top: 10vh !important;
+  }
+}
+
+@media screen and (max-height: 650px) {
+  .el-dialog.custom-dialog-big {
+    margin-top: 5vh !important;
+  }
+}
+
+@media screen and (max-height: 620px) {
+  .el-dialog.custom-dialog-big {
+    margin-top: 1vh !important;
+  }
+}
+
+.el-notification.right {
+  right: 1vh !important;
+}
+
+@media screen and (max-width: 340px) {
+  .el-notification {
+    width: 310px !important;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .el-input--large {
+    width: 50% !important;
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  .el-input--large {
+    width: 40% !important;
+  }
+}
+
 </style>

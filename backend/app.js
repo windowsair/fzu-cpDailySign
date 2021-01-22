@@ -7,6 +7,7 @@ var dns = require('dns'),
     })
 dnscache.lookup('fzu.cpdaily.com', (err, result) => { })
 dnscache.lookup('fzu.campusphere.net', (err, result) => { })
+dnscache.lookup('mobile.campushoy.com', (err, result) => { })
 dnscache.lookup('id.fzu.edu.cn', (err, result) => { })
 dnscache.lookup('www.cpdaily.com', (err, result) => { })
 dnscache.lookup('sc.ftqq.com', (err, result) => { })

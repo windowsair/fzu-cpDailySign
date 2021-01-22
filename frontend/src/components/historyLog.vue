@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="历史签到记录"
+    title="历史任务记录"
     :visible.sync="dialogEnable"
     custom-class="custom-dialog"
     :close-on-click-modal="false"

@@ -54,7 +54,7 @@ export default {
 
           Message.info({
             showClose: true,
-            duration: 4000,
+            duration: 2000,
             message: content
           })
 

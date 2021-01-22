@@ -168,7 +168,7 @@ function cronSignTask(redisUserClient, redisLogClient) {
         if (isFirstTime) {
             // 创建一个失败的表
             logClient.addSetMember('failSign', 0)
-            logClient.setKeyExpire('failSign', 60 * 60 * 4) // 四小时过期
+            logClient.setKeyExpire('failSign', 60 * 60 * 12)
         }
 
         // 获取用户
@@ -265,7 +265,7 @@ function systemNotice(redisUserClient, redisLogClient) {
             title: '站点通知 ',
             content: '内容'
         }
-        notificationSend(redisLogClient, noticeData)
+        await notificationSend(redisLogClient, noticeData)
 
         return {code: 0, msg: 'done'}
 

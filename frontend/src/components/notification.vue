@@ -2,6 +2,7 @@
   <el-dialog
     title="选择通知方式"
     :visible.sync="dialogEnable"
+    top="1vh"
     custom-class="custom-dialog"
     :close-on-click-modal="false"
     :v-loading="dialogLoading"
@@ -35,7 +36,7 @@
       <el-row class="mod-notification-radio">
         <el-form :inline="true" :model="apiKeyForm" ref="apiKeyForm" :rules="apiKeyRule">
           <el-form-item label="APIKEY" prop="apiKey">
-            <el-input 
+            <el-input
             v-model="apiKeyForm.apiKey"
             :disabled="apiKeyForm.type == ''"
             :placeholder="apiPlaceholder"></el-input>
@@ -47,7 +48,7 @@
         <el-tooltip class="item" effect="dark" content="点击查看" placement="bottom-start">
           <el-image
             style="width: 100%; height: 60px"
-            :src="imgUrl.noticeHelperUrl"
+            :src="imgUrl.getHelpUrl"
             :preview-src-list="noticeHelperImgList"
           ></el-image>
         </el-tooltip>
@@ -65,7 +66,7 @@
 import barkUrl from '../assets/bark.png'
 import serverChanUrl from '../assets/serverchan.png'
 import qmsgUrl from '../assets/qmsg.jpg'
-import noticeHelperUrl from '../assets/noticeHelper.svg'
+import getHelpUrl from '../assets/getHelp.svg'
 import noticeHelperUrl1 from '../assets/noticeHelper1.png'
 import noticeHelperUrl2 from '../assets/noticeHelper2.png'
 import noticeHelperUrl3 from '../assets/noticeHelper3.png'
@@ -104,7 +105,7 @@ export default {
         barkUrl: barkUrl,
         serverChanUrl: serverChanUrl,
         qmsgUrl: qmsgUrl,
-        noticeHelperUrl: noticeHelperUrl,
+        getHelpUrl: getHelpUrl,
       },
 
       noticeHelperImgList: [
