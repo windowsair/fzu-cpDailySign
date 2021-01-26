@@ -15,12 +15,12 @@
         :rules="settingRule"
       >
 
-        <el-form-item label="自动填表">
-          <el-switch @change="onSwitchChange($event, 'form')" v-model="taskSetting.formTaskEnable"></el-switch>
+        <el-form-item label="自动填表" prop="formTaskStatus">
+          <el-switch v-model="autoTaskStatus.formTask"></el-switch>
         </el-form-item>
 
-        <el-form-item label="自动签到">
-          <el-switch @change="onSwitchChange($event, 'sign')" v-model="taskSetting.signTaskEnable"></el-switch>
+        <el-form-item label="自动签到" prop="signTaskStatus">
+          <el-switch v-model="autoTaskStatus.signTask"></el-switch>
         </el-form-item>
 
         <el-form-item label="填表地址" prop="area">
@@ -45,6 +45,17 @@
 
 
       </el-form>
+
+      <el-row class="mod-notification-radio">
+        <el-link
+        href="https://lbs.qq.com/tool/getpoint/index.html"
+        target="_blank"
+        type="primary"
+        >
+        点此获取坐标
+        <i class="el-icon-location-outline el-icon--right"></i>
+        </el-link>
+      </el-row>
 
       <el-row class="mod-notification-radio">
         <el-tooltip class="item" effect="dark" content="点击查看" placement="bottom-start">
@@ -82,7 +93,20 @@ export default {
       default: null,
     },
   },
+  watch: {
+    autoTaskStatus: {
+      handler (newVal, oldVal) {
+        (oldVal)
+
+        this.taskSetting.formTaskEnable = newVal.formTask
+        this.taskSetting.signTaskEnable = newVal.signTask
+      },
+      deep: true,
+      immediate: true,
+    }
+  },
   data() {
+    //// FIXME: 特殊行政区域、海外的处理
     const validateArea = (rule, value, callback) => {
       // value-> 0: 什么都没有选中 1: 可能已经选择省市,但是还没有选择地区
       if (this.settingForm.province.length > 1) {
@@ -90,11 +114,11 @@ export default {
           this.taskSetting.locationInfo = ''
           callback(new Error('请输入完整地址'))
         } else {
-          let fullLocation = this.settingForm.province
+          let fullLocation = this.settingForm.province + '/'
           fullLocation +=
             this.settingForm.province == this.settingForm.city
-              ? ''
-              : this.settingForm.city // 区分直辖市等
+              ? '/' // TODO: 需要观察一些直辖市的行为
+              : this.settingForm.city + '/' // 区分直辖市等
           fullLocation += this.settingForm.area
           this.taskSetting.locationInfo = fullLocation
           callback()
@@ -135,6 +159,9 @@ export default {
 
       if (value.length == 0 && this.settingForm.address.length) {
         callback(new Error('请输入地理坐标'))
+      } else if (value.length == 0) {
+        // 全部为空, 继续
+        callback()
       } else {
         let [lon, lat] = value.split(',')
         ;[lon, lat] = qqMapToBMap(lon, lat)
@@ -152,12 +179,12 @@ export default {
       dialogEnable: false,
       dialogLoading: false,
       taskSetting: {
-        formTaskEnable: this.autoTaskStatus.formTask,
-        signTaskEnable: this.autoTaskStatus.signTask,
+        formTaskEnable: false,
+        signTaskEnable: false,
         locationInfo: '', // 填表的位置
         address: '',      // 签到的地址
-        lat: '',          // 签到的坐标
-        lon: '',
+        lat: -1,          // 签到的坐标
+        lon: -1,          // -1表示不更改
       },
       settingForm: {
         province: '',
@@ -198,13 +225,6 @@ export default {
         this.settingForm.city = $event.value
       } else if (id == 'area') {
         this.settingForm.area = $event.value
-      }
-    },
-    onSwitchChange($event, id) {
-      if (id == 'form') {
-        this.taskSetting.formTaskEnable = $event
-      } else if (id == 'task') {
-        this.taskSetting.signTaskEnable = $event
       }
     },
     submitForm() {

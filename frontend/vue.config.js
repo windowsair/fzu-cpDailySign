@@ -35,6 +35,16 @@ module.exports = {
         target: 'http://127.0.0.1:23340',
         ws: true,
         changeOrigin: true
+      },
+      '/api/getRemoteSetting': {
+        target: 'http://127.0.0.1:23340',
+        ws: true,
+        changeOrigin: true
+      },
+      '/api/taskSetting': {
+        target: 'http://127.0.0.1:23340',
+        ws: true,
+        changeOrigin: true
       }
     }
   }

@@ -34,11 +34,17 @@
       </el-row>
 
       <el-row class="mod-notification-radio">
+        <el-radio-group v-model="apiKeyForm.type">
+          <el-radio v-model="apiKeyForm.type" label="none" style="color:#FF3B30">清除通知</el-radio>
+        </el-radio-group>
+      </el-row>
+
+      <el-row class="mod-notification-radio">
         <el-form :inline="true" :model="apiKeyForm" ref="apiKeyForm" :rules="apiKeyRule">
           <el-form-item label="APIKEY" prop="apiKey">
             <el-input
             v-model="apiKeyForm.apiKey"
-            :disabled="apiKeyForm.type == ''"
+            :disabled="apiKeyForm.type == '' || apiKeyForm.type == 'none'"
             :placeholder="apiPlaceholder"></el-input>
           </el-form-item>
         </el-form>
@@ -75,6 +81,20 @@ import { Message } from 'element-ui'
 
 export default {
   data() {
+    const validateAPIKey = (rule, value, callback) => {
+      if (this.apiKeyForm.type == 'none') {
+        callback()
+        return
+      }
+      if (value == '') {
+        callback(new Error('请输入APIKey'))
+      } else if (value.length < 8) {
+        callback(new Error('请检查您的输入'))
+      } else {
+        callback()
+      }
+    }
+
     return {
       dialogEnable: false,
       dialogLoading: false,
@@ -86,19 +106,7 @@ export default {
       },
 
       apiKeyRule: {
-        apiKey: [
-          {
-            required: true,
-            message: '请输入APIKEY',
-            trigger: 'blur',
-          },
-          {
-            min: 8,
-            message: '检查您的输入',
-            trigger: 'blur',
-          },
-        ],
-
+        apiKey: [{ validator: validateAPIKey, trigger: 'blur' }],
       },
 
       imgUrl: {
@@ -154,7 +162,7 @@ export default {
               } else {
                 this.dialogLoading = false
                 Message({
-                  message: '成功发送测试内容!',
+                  message: '操作成功完成!',
                   type: 'success',
                   duration: 1500,
                 })

@@ -1,0 +1,70 @@
+{
+    "#ATTENATION": "存储填表的各种情况",
+    "question": {
+        "体温": "lower",
+        "温度": "lower",
+        "接触": "negative",
+        "确诊": "negative",
+        "疑似": "negative",
+        "风险": "negative",
+        "隔离": "negative",
+        "观察": "negative",
+        "入院": "negative",
+        "住院": "negative",
+        "变化": "negative",
+        "变动": "negative",
+        "途经": "negative",
+        "旅行": "negative",
+        "共同": "negative",
+        "同居": "negative",
+        "疫区": "negative",
+        "入闽": "negative",
+        "地址": "negative",
+        "住址": "negative",
+        "承诺": "positive",
+        "保证": "positive",
+        "遵守": "positive",
+        "配合": "positive",
+        "身体": "normal",
+        "健康码": "normal",
+        "颜色": "normal",
+        "状况": "normal",
+        "症状": "negative",
+        "头晕": "negative",
+        "胸闷": "negative",
+        "无力": "negative",
+        "发烧": "negative",
+        "咳嗽": "negative",
+        "恶心": "negative",
+        "呕吐": "negative",
+        "腹泻": "negative",
+        "不适": "negative"
+    },
+    "answer": {
+        "lower": [
+            "小",
+            "低",
+            "下",
+            "正常"
+        ],
+        "negative": [
+            "没",
+            "无",
+            "否",
+            "未"
+        ],
+        "positive": [
+            "是",
+            "确",
+            "有"
+        ],
+        "normal": [
+            "正常",
+            "健康",
+            "绿",
+            "良好",
+            "无",
+            "低风险"
+        ]
+    }
+}

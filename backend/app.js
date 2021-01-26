@@ -30,16 +30,14 @@ const Parameter = require('parameter')
 
 
 const { getCpDailyInfo, getMessageCode, verifyMessageCode, verifyUserLogin, loginGetCookie, getCpdailyExtension } = require('./components/cpDaily/cpDailyLogin')
-const { signTask } = require('./components/cpDaily/cpDailySign')
 
-const { notificationSend, getUserNoticeType } = require('./components/notification/notification')
-const { judgeTimeRange, logSignMsg, getUserSignLog, cronSignTask, systemNotice } = require('./components/utils/utils')
-const {querySubmitFormTask} = require('./components/cpDaily/cpDailySubmit')
+const { notificationSend } = require('./components/notification/notification')
+const { judgeTimeRange, logTaskMsg, getUserSignLog, cronCpDailyTask, systemNotice, mainCpDailyTask, getTaskStatus } = require('./components/utils/utils')
 
 
 const fs = require("fs")
 
-const redisFile = fs.readFileSync('./config/redis.json')
+const redisFile = fs.readFileSync('config/redis.json')
 const redisSetting = JSON.parse(redisFile)
 
 
@@ -466,8 +464,8 @@ app.post('/api/changeNotice', (req, res) => {
 
     const rule = {
         studentID: { type: 'string', min: 8, max: 11 },
-        apiKey: { type: 'string', min: 8 },
-        type: ['serverChan', 'qmsg', 'bark']
+        apiKey: { type: 'string', max: 100, allowEmpty: true },
+        type: ['serverChan', 'qmsg', 'bark', 'none']
     }
 
     let errors = parameter.validate(rule, req.body)
@@ -488,6 +486,8 @@ app.post('/api/changeNotice', (req, res) => {
 
     let userID = 'user:' + req.body.studentID
 
+    let client = new RedisOP(redisUserClient)
+
     async function mainTask() {
         const notification = {
             type: req.body.type,
@@ -504,21 +504,31 @@ app.post('/api/changeNotice', (req, res) => {
             apiKey: notification.apiKey,
             isTest: true
         }
-        let testResult = await notificationSend(redisLogClient, data)
+
+        let logClient = new RedisOP(redisLogClient)
+        let testResult = await notificationSend(logClient, data)
 
         if (testResult.code != 0) {
             res.send(testResult)
             return
         }
 
-        let client = new RedisOP(redisUserClient)
         await client.setValue(userID, notificationSetting)
 
         res.send(response)
 
     }
 
-    mainTask()
+    async function clearNotice() {
+        await client.delValue(userID, 'notification')
+        res.send(response)
+    }
+
+    if (req.body.type != 'none') {
+        mainTask()
+    } else {
+        clearNotice()
+    }
 
 
 })
@@ -571,57 +581,19 @@ app.post('/api/testSign', (req, res) => {
 
     let userID = 'user:' + req.body.studentID
 
+    let userClient = new RedisOP(redisUserClient)
+    let logClient = new RedisOP(redisLogClient)
+
     async function mainTask() {
-        // step1 : 查找登录信息
-        let client = new RedisOP(redisUserClient)
-        let loginData = await client.getValue(userID, 'loginData')
-        if (loginData[0] == null) {
-            response = { code: 4, msg: '您还未验证手机号!' }
-            res.send(response)
-            return
-        } else {
-            loginData = JSON.parse(loginData[0])
+        let allTask = await getTaskStatus(userID, userClient, logClient)
+        let taskResult = await mainCpDailyTask(userID, userClient, logClient, allTask)
+        if (taskResult.code != 0) {
+            response = {
+                code: 4,
+                msg: taskResult.msg
+            }
         }
-
-        // step2: 进行打卡测试
-
-
-        let signTaskResult = await signTask(userID, loginData)
-        if (signTaskResult.code != 0) {
-            logSignMsg(redisLogClient, userID, signTaskResult.msg, 'error')
-            res.send(signTaskResult)
-            return
-        }
-
-        // 失败了不发送通知
-
-        // step3: 发送打卡通知
-        let userNotice = await getUserNoticeType(redisUserClient, userID)
-        if (userNotice.code != 0) {
-            logSignMsg(redisLogClient, userID, '打卡成功,未设置通知方式', 'warning')
-            response = { code: 1024, msg: '打卡成功,未设置通知方式' }
-            res.send(response)
-            return
-        }
-
-
-        const data = {
-            userID: userID,
-            type: userNotice.type,
-            apiKey: userNotice.apiKey,
-            isTest: false
-        }
-        let testResult = await notificationSend(redisLogClient, data)
-
-        if (testResult.code != 0) {
-            logSignMsg(redisLogClient, userID, '打卡成功,通知失败,原因是' + testResult.msg, 'warning')
-            res.send(testResult)
-            return
-        }
-
-        logSignMsg(redisLogClient, userID, '打卡成功', 'success')
         res.send(response)
-
     }
 
     mainTask()
@@ -684,6 +656,108 @@ app.post('/api/getSignLog', (req, res) => {
 })
 
 
+app.post('/api/getRemoteSetting', (req, res) => {
+    let response = { code: 0, msg: 'ok', data: {} }
+    try {
+        if (req.session.login != true) {
+            response = { code: -1, msg: '您还未登录!' }
+            res.send(response)
+            return
+        }
+    } catch (error) {
+        response = { code: -1, msg: '您还未登录!' }
+        res.send(response)
+        return
+    }
+
+
+    const userID = 'user:' + req.session.studentID
+    const userSetting = ['formTaskEnable', 'signTaskEnable']
+    let client = new RedisOP(redisUserClient)
+
+    client.getValue(userID, userSetting).then((result) => {
+        response.data.formTaskEnable = result[0]
+        response.data.signTaskEnable = result[1]
+        res.send(response)
+    }).catch(err => {
+        console.log(err)
+        response = { code: 5, msg: '系统错误' }
+        res.send(response)
+        return
+    })
+})
+
+app.post('/api/taskSetting', (req, res) => {
+    let response = { code: 0, msg: 'ok' }
+    try {
+        if (req.session.login != true) {
+            response = { code: -1, msg: '您还未登录!' }
+            res.send(response)
+            return
+        }
+    } catch (error) {
+        response = { code: -1, msg: '您还未登录!' }
+        res.send(response)
+        return
+    }
+
+    let parameter = new Parameter({
+        validateRoot: true,
+    })
+
+    const convertToBoolean = (value) => {
+        return JSON.parse(value)
+    }
+
+    const rule = {
+        formTaskEnable: { type: 'bool', convertType: convertToBoolean },
+        signTaskEnable: { type: 'bool', convertType: convertToBoolean },
+        locationInfo: { type: 'string', allowEmpty: true },
+        address: { type: 'string', allowEmpty: true },
+        lat: { type: 'number', convertType: 'number' },
+        lon: { type: 'number', convertType: 'number' },
+    }
+
+    let errors = parameter.validate(rule, req.body)
+
+    if (errors != undefined) {
+        response.code = 1
+        response.msg = '参数不正确'
+        res.send(response)
+        return
+    }
+
+    // 实际上有更多的非正常情况
+    // 正常从前端发起的请求不会出现这些情况,因此这里不管
+    const { formTaskEnable, signTaskEnable, locationInfo, address, lat, lon } = req.body
+    let userSetting = { formTaskEnable, signTaskEnable }
+
+    if (locationInfo.length && locationInfo.split('/').length == 3) {
+        userSetting.locationInfo = locationInfo // 位置由省市区构成
+    }
+    if (address.length) {
+        userSetting.address = address
+    }
+    if (lat >= 0 && lon >= 0) {
+        userSetting.lat = lat
+        userSetting.lon = lon
+    }
+
+    // 数据库操作
+    const userID = 'user:' + req.session.studentID
+    let client = new RedisOP(redisUserClient)
+
+    client.setValue(userID, userSetting).then((value) => {
+        res.send(response)
+    }).catch(err => {
+        console.log(err)
+        response = { code: 5, msg: '系统错误' }
+        res.send(response)
+        return
+    })
+})
+
+
 /**
  * 简单验证码模块
  */
@@ -694,7 +768,9 @@ app.get('/api/captcha.jpg', captcha.image())
 // 定时任务
 
 // 5-7点每25分钟执行一次
-var job1 = new CronJob('*/30 6-9 * * *', function () {
-    cronSignTask(redisUserClient, redisLogClient)
+var job1 = new CronJob('*/30 1-12 * * *', function () {
+    let userClient = new RedisOP(redisUserClient)
+    let logClient = new RedisOP(redisLogClient)
+    cronCpDailyTask(userClient, logClient, 60 * 60 * 12) // 12小时过期
 }, null, true)
 

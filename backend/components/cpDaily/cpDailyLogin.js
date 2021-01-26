@@ -187,7 +187,7 @@ async function loginGetCookie(cpDailyInfo, loginData) {
         }]
     }
     amp = JSON.stringify(amp)
-    encryptAmp = des.encrypt(amp, cryptoInfo.verDESKey[0x00])
+    let encryptAmp = des.encrypt(amp, cryptoInfo.verDESKey[0x00])
 
     let config = {
         method: 'get',
@@ -223,8 +223,7 @@ async function loginGetCookie(cpDailyInfo, loginData) {
     // step2: 重定向
     //// TODO: fzu only
     config.headers.Host = 'id.fzu.edu.cn'
-    urlRedirect = redirect.response.headers['location']
-    config.url = urlRedirect
+    config.url = redirect.response.headers['location']
 
 
     ;[redirect, resSomething] = await to(axios(config))
@@ -235,8 +234,7 @@ async function loginGetCookie(cpDailyInfo, loginData) {
 
     // step3: 重定向
     config.headers.Host = fzuAuth.host
-    urlRedirect = redirect.response.headers['location']
-    config.url = urlRedirect
+    config.url = redirect.response.headers['location']
 
 
     ;[redirect, resSomething] = await to(axios(config))
@@ -249,7 +247,14 @@ async function loginGetCookie(cpDailyInfo, loginData) {
 }
 
 
-// 重新获取新的Cookie
+/**
+ * 重新获取新的Cookie
+ *
+ * @param {string} cpDailyInfo 加密后的字符串
+ * @param {object} loginData 登录数据
+ *
+ * @returns null: 有错误发生 -1: 需要重新登录 0:无需操作 / 否则为获取到的header
+ */
 async function relogin(cpDailyInfo, loginData) {
     // 相关数据的加密
     const des = new crypto.DESCrypto
@@ -272,7 +277,7 @@ async function relogin(cpDailyInfo, loginData) {
         }]
     }
     amp = JSON.stringify(amp)
-    encryptAmp = des.encrypt(amp, cryptoInfo.verDESKey[0x00])
+    let encryptAmp = des.encrypt(amp, cryptoInfo.verDESKey[0x00])
 
     let config = {
         method: 'get',
@@ -320,8 +325,7 @@ async function relogin(cpDailyInfo, loginData) {
     // 开始获取新的Cookie
     config.headers.Host = 'id.fzu.edu.cn'
     config.headers.Cookie = `CASTGC=${loginData.tgc}; AUTHTGC=${encryptTgc}`
-    urlRedirect = redirect.response.headers['location']
-    config.url = urlRedirect
+    config.url = redirect.response.headers['location']
 
 
     ;[redirect, resSomething] = await to(axios(config))
@@ -332,8 +336,7 @@ async function relogin(cpDailyInfo, loginData) {
 
     // 继续进行重定向
     config.headers.Host = fzuAuth.host
-    urlRedirect = redirect.response.headers['location']
-    config.url = urlRedirect
+    config.url = redirect.response.headers['location']
 
 
     ;[redirect, resSomething] = await to(axios(config))
@@ -345,13 +348,60 @@ async function relogin(cpDailyInfo, loginData) {
     return redirect.response.headers
 }
 
+//// TODO: 重复合并
+
+/**
+ *
+ * @param {string} userID 形如'user:9876543210'
+ * @param {class RedisOP} userClient
+ * @param {string} cpDailyInfo 加密后的字符串
+ * @param {object} loginData 旧的登录数据
+ */
+async function getNewCookie(userID, userClient, cpDailyInfo, loginData) {
+    let result = await relogin(cpDailyInfo, loginData)
+
+    if (result == 0) {
+        return { code: 0, msg: '无需获取', data: loginCookie }
+    }
+    else if (result == -1) {
+        return { code: -1, msg: 'Cookie获取失败!' }
+    }
+
+    // 获取到新的cookie
+    try {
+        if (result['set-cookie'].length < 2) {
+            return { code: -1, msg: 'Cookie获取失败!' }
+        }
+        else {
+            let tmp = ''
+            for (const item of result['set-cookie']) {
+                tmp += item.split(';')[0] + ';'
+            }
+            result = tmp
+        }
+
+        // 更新最新Cookie
+        loginData.cookie = result
+        const newLoginData = {
+            loginData: JSON.stringify(loginData)
+        }
+        await userClient.setValue(userID, newLoginData)
+        return { code: 0, msg: 'OK', data: result }
+    } catch (error) {
+        console.log(error)
+        return { code: -1, msg: 'Cookie获取失败!' }
+    }
+}
+
+
 exports.getCpDailyInfo = getCpDailyInfo
 exports.getMessageCode = getMessageCode
 exports.verifyMessageCode = verifyMessageCode
 exports.verifyUserLogin = verifyUserLogin
 
 exports.loginGetCookie = loginGetCookie
-exports.relogin = relogin
+// exports.relogin = relogin
+exports.getNewCookie = getNewCookie
 
 exports.getDynamicKey = getDynamicKey
 exports.getCpdailyExtension = getCpdailyExtension

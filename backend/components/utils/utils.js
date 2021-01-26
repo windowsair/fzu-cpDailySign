@@ -1,29 +1,30 @@
 const { RedisOP } = require('../redis/redis-operation')
 const { signTask } = require('../cpDaily/cpDailySign')
+const { formTask } = require('../cpDaily/cpDailySubmit')
 const { notificationSend } = require('../notification/notification')
+
+
 /**
  * 判断当前时刻是否处于打卡的时间段内
- *
+ *  考虑弃用了...
  * @return bool
  */
 function judgeTimeRange() {
-    const timeRangeList = [[500, 2230]]
-    let now = new Date()
-    let val = now.getHours() * 100 + now.getMinutes()
+    // const timeRangeList = [[500, 2230]]
+    // let now = new Date()
+    // let val = now.getHours() * 100 + now.getMinutes()
 
-    for (const e of timeRangeList) {
-        if (e[0] <= val && val <= e[1]) {
-            return true
-        }
-    }
+    // for (const e of timeRangeList) {
+    //     if (e[0] <= val && val <= e[1]) {
+    //         return true
+    //     }
+    // }
 
-    return false
+    // return false
+    return true
 }
 
-// function judgeTimeRange() {
 
-//     return true
-// }
 
 
 async function takeLongTime() {
@@ -37,23 +38,20 @@ async function takeLongTime() {
 /**
  * 将签到过程中的结果记录到数据库中
  *
- * @param {object} redisClient
+ * @param {class RedisOP} logClient
  * @param {string} userID 形如'user:9876543210'
  * @param {string} msg 消息
  * @param {string} type 操作类型
  */
-async function logSignMsg(redisClient, userID, msg, type) {
-    const timeStamp = Math.round(new Date() / 1000)
-    let client = new RedisOP(redisClient)
-
+async function logTaskMsg(logClient, userID, msg, type) {
     let data = {
-        timeStamp: timeStamp,
+        timeStamp: Math.round(new Date() / 1000),
         msg: msg,
         type: type
     }
     data = JSON.stringify(data)
 
-    await client.pushToList(userID, data)
+    await logClient.pushToList(userID, data)
 
 }
 
@@ -70,128 +68,177 @@ async function getUserSignLog(redisClient, userID) {
 }
 
 
+/**
+ * 获取当前需要进行的任务情况
+ *
+ * @param {string} userID 形如'user:9876543210'
+ * @param {class RedisOP} userClient
+ * @param {class RedisOP} logClient
+ *
+ * @returns {object} 需要进行的任务情况
+ */
+async function getTaskStatus(userID, userClient, logClient) {
+    let [formTaskEnable, signTaskEnable] = await userClient.getValue(
+        userID, ['formTaskEnable', 'signTaskEnable'],
+        true)
+    let formTaskResult = await logClient.isMemberOfSet(
+        'successSubmit', userID)
+    let signTaskResult = await logClient.isMemberOfSet(
+        'successSign', userID)
+    return {
+        formTaskEnable: formTaskEnable && !formTaskResult,
+        signTaskEnable: signTaskEnable && !signTaskResult
+    }
+}
+
+/**
+ * 主要的任务
+ *
+ * @param {string} userID 形如'user:9876543210'
+ * @param {class RedisOP} userClient
+ * @param {class RedisOP} logClient
+ * @param {object} task 任务列表,形如{signTaskEnable: true}的值
+ * @param {bool=false} isFirstTime
+ *
+ * @return {object} 执行结果,形如{code: 0, msg: 'OK'}的值
+ */
+async function mainCpDailyTask(userID, userClient, logClient, task, isFirstTime=false) {
+    // step1: 获取用户信息
+    let userInfo = await userClient.getValue(
+        userID, ['loginData', 'notification'],
+        true)
+    let [loginData, notification] = userInfo
+
+    if (loginData == null) {
+        if (userID == '0') { // 忽略无用项
+            return { code: -1, msg: '未找到有效用户' }
+        }
+        await logTaskMsg(logClient, userID, '未验证手机号', 'warning')
+        return { code: -1, msg: '未找到有效用户' }
+    }
+
+    let taskSum = task.formTaskEnable + task.signTaskEnable
+    let successSum = 0
+    let errorMsgArr = []
+
+    if (!taskSum)
+        return { code: 0, msg: '无任务', waitTime: false }
+
+    if (task.signTaskEnable) {
+        // 获取位置信息
+        let [address, lon, lat] = await userClient.getValue(
+            userID, ['address', 'lon', 'lat'],
+            true)
+        const sginLocation = {
+            address: address,
+            lon: lon,
+            lat: lat,
+        }
+        let signResult = await signTask(userID, userClient, loginData, sginLocation)
+        if (signResult.code == 0) {
+            successSum++
+            await logClient.addSetMember('successSign', userID)
+        } else {
+            errorMsgArr.push(signResult.msg)
+        }
+    }
+
+    if (task.formTaskEnable) {
+        let [locationInfo] = await userClient.getValue(
+            userID, ['locationInfo'],
+            true)
+        const formLocation = {
+            locationInfo: locationInfo,
+        }
+        let formResult = await formTask(userID, userClient, loginData, formLocation)
+        if (formResult.code == 0) {
+            successSum++
+            await logClient.addSetMember('successSubmit', userID)
+        } else{
+            errorMsgArr.push(formResult.msg)
+        }
+    }
+
+    let msg = ''
+    let logType = 'success'
+    if (taskSum == successSum) {
+        msg = `成功完成${taskSum}项任务`
+    } else {
+        logType = 'error'
+        msg = `成功:${successSum},失败:${taskSum - successSum}\n`
+        msg += errorMsgArr.join('\n')
+    }
+
+    // 始终记录历史
+    await logTaskMsg(logClient, userID, msg, logType)
+    // 推送通知
+    if (notification && (isFirstTime || logType == 'success')) {
+        let noticeData = {
+            userID: userID,
+            type: notification.type,
+            apiKey: notification.apiKey,
+            isTest: false,
+            title: logType == 'success' ? '任务成功' : '任务失败',
+            content: msg
+        }
+        await notificationSend(logClient, noticeData)
+    }
+
+    return {
+        code: taskSum - successSum, // 失败个数
+        msg: msg,
+        waitTime: successSum > 0
+    }
+
+}
 
 
 /**
- * 所有用户的定时签到任务
+ * 所有用户的定时任务
  *
- * @param {object} redisUserClient
- * @param {object} redisLogClient
- * @param {bool} isFirstTime 采取多次签到的形式,第二次之后会在失败的用户中进行.
+ * @param {class RedisOP} redisUserClient
+ * @param {class RedisOP} redisLogClient
+ * @param {number} expireTime 任务重置时间
  */
-function cronSignTask(redisUserClient, redisLogClient) {
+function cronCpDailyTask(userClient, logClient, expireTime) {
     if (process.env.NODE_APP_INSTANCE === '10') {
         console.log('start cron!')
-    } else{
+    } else {
         return
-    }
-
-
-    let userClient = new RedisOP(redisUserClient)
-    let logClient = new RedisOP(redisLogClient)
-
-
-    async function mainTask(userID, isFirstTime) {
-        // step1: 获取用户信息
-        let userInfo = await userClient.getValue(userID, ['loginData', 'notification'])
-        let loginData = JSON.parse(userInfo[0])
-        let notification = JSON.parse(userInfo[1])
-
-        if (loginData == null) {
-            if(userID == '0'){ // 忽略无用项
-                return {code: -1, msg: '未找到有效用户'}
-            }
-            await logSignMsg(redisLogClient, userID, '未验证手机号', 'warning')
-            return {code: -1, msg: '未找到有效用户'}
-        }
-
-        let signResult = await signTask(userID, loginData)
-
-        if (signResult.code == 0) {
-            // 成功签到
-            if (notification == null) {
-                await logSignMsg(redisLogClient, userID, '签到成功,未设置通知方式', 'success')
-            }
-            else {
-                let noticeData = {
-                    userID: userID,
-                    type: notification.type,
-                    apiKey: notification.apiKey,
-                    isTest: false,
-                    title: '签到成功',
-                    content: '签到成功'
-                }
-                await logSignMsg(redisLogClient, userID, '签到成功', 'success')
-                await notificationSend(redisLogClient, noticeData)
-            }
-
-            if (!isFirstTime) {
-                // 不是在第一次成功的,这时候移除log数据库中Set的指定成员
-                await logClient.removeSetMember('failSign', userID)
-            }
-        } else {
-            // 签到失败
-            if (isFirstTime) {
-                await logClient.addSetMember('failSign', userID)
-
-                // 只推送一次通知
-                if (notification != null) {
-                    let noticeData = {
-                        userID: userID,
-                        type: notification.type,
-                        apiKey: notification.apiKey,
-                        isTest: false,
-                        title: '签到失败',
-                        content: signResult.msg
-                    }
-                    await notificationSend(redisLogClient, noticeData)
-                }
-            }
-
-            // 记录错误消息
-            let msg = signResult.msg
-            await logSignMsg(redisLogClient, userID, msg, 'error')
-            return {code: 0, msg: msg}
-        }
-
-        return {code: 0, msg: 'done'}
-
     }
 
     async function mainLoop() {
         // 前置任务
         let startTime = new Date().toLocaleString()
-        let isFirstTime = await logClient.isKeyExists('failSign')
+        let isFirstTime = await logClient.isKeyExists('successSign')
         isFirstTime = !isFirstTime
 
 
         if (isFirstTime) {
             // 创建一个失败的表
-            logClient.addSetMember('failSign', 0)
-            logClient.setKeyExpire('failSign', 60 * 60 * 12)
+            await logClient.addSetMember('successSign', 0)
+            await logClient.addSetMember('successSubmit', 0)
+            await logClient.setKeyExpire('successSign', expireTime)
+            await logClient.setKeyExpire('successSubmit', expireTime)
         }
 
         // 获取用户
-        let userList = []
-        if (isFirstTime) {
-            userList = await userClient.scanKey(0)
-        } else {
-            userList = await logClient.scanSet('failSign', 0)
-        }
+        let userList = await userClient.scanKey(0)
 
         if (userList[1].length == 0) { // 没有任何用户
             return
         }
 
         do {
-            let cursor = userList[0]
-            let userData = userList[1]
+            let [cursor, userData] = userList
             console.log('当前共有：' + userData.length)
+
             for (let index = 0; index < userData.length; index++) {
                 const userID = userData[index]
-                let taskResult  = await mainTask(userID, isFirstTime) // 顺序执行
+                const allTask = await getTaskStatus(userID, userClient, logClient)
+                let taskResult = await mainCpDailyTask(userID, userClient, logClient, allTask, isFirstTime)
                 console.log(taskResult + ` 用户:${userID}`)
-                if(taskResult.code == 0){
+                if (taskResult.waitTime) {
                     await takeLongTime() // 限制并发
                 }
                 // doSomething
@@ -201,11 +248,7 @@ function cronSignTask(redisUserClient, redisLogClient) {
             if (cursor == 0) {
                 break
             }
-            if (isFirstTime) {
-                userList = await userClient.scanKey(cursor)
-            } else {
-                userList = await logClient.scanSet('failSign', cursor)
-            }
+            userList = await userClient.scanKey(cursor)
         } while (true)
 
 
@@ -231,30 +274,25 @@ function cronSignTask(redisUserClient, redisLogClient) {
 /**
  * 系统通知推送
  *
- * @param {object} redisUserClient
- * @param {object} redisLogClient
+ * @param {class RedisOP} userClient
+ * @param {class RedisOP} logClient
  */
-function systemNotice(redisUserClient, redisLogClient) {
-
-    let userClient = new RedisOP(redisUserClient)
-    let logClient = new RedisOP(redisLogClient)
-
+function systemNotice(userClient, logClient) {
 
     async function mainTask(userID, isFirstTime) {
         // step1: 获取用户信息
-        let userInfo = await userClient.getValue(userID, ['loginData', 'notification'])
-        let loginData = JSON.parse(userInfo[0])
-        let notification = JSON.parse(userInfo[1])
+        let [loginData, notification] = await userClient.getValue(
+            userID, ['loginData', 'notification'], true)
 
         if (loginData == null) {
-            if(userID == '0'){ // 忽略无用项
-                return {code: -1, msg: '未找到有效用户'}
+            if (userID == '0') { // 忽略无用项
+                return { code: -1, msg: '未找到有效用户' }
             }
-            logSignMsg(redisLogClient, userID, '未验证手机号', 'warning')
-            return {code: -1, msg: '未找到有效用户'}
+            await logTaskMsg(logClient, userID, '未验证手机号', 'warning')
+            return { code: -1, msg: '未找到有效用户' }
         }
-        if (notification == null){
-            return {code: -2, msg: '未设置通知方式'}
+        if (notification == null) {
+            return { code: -2, msg: '未设置通知方式' }
         }
 
         let noticeData = {
@@ -265,9 +303,9 @@ function systemNotice(redisUserClient, redisLogClient) {
             title: '站点通知 ',
             content: '内容'
         }
-        await notificationSend(redisLogClient, noticeData)
+        await notificationSend(logClient, noticeData)
 
-        return {code: 0, msg: 'done'}
+        return { code: 0, msg: 'done' }
 
     }
 
@@ -290,7 +328,7 @@ function systemNotice(redisUserClient, redisLogClient) {
             let userData = userList[1]
             for (let index = 0; index < userData.length; index++) {
                 const userID = userData[index]
-                let taskResult  = await mainTask(userID, isFirstTime) // 顺序执行
+                let taskResult = await mainTask(userID, isFirstTime) // 顺序执行
                 console.log(taskResult)
                 // doSomething
             }
@@ -325,7 +363,11 @@ function systemNotice(redisUserClient, redisLogClient) {
 
 
 exports.judgeTimeRange = judgeTimeRange
-exports.logSignMsg = logSignMsg
+exports.logTaskMsg = logTaskMsg
 exports.getUserSignLog = getUserSignLog
-exports.cronSignTask = cronSignTask
+exports.cronCpDailyTask = cronCpDailyTask
+exports.mainCpDailyTask= mainCpDailyTask
 exports.systemNotice = systemNotice
+
+
+exports.getTaskStatus = getTaskStatus

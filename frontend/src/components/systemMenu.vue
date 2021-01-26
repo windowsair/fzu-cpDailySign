@@ -49,7 +49,7 @@
     <verifyPhone ref="verifyPhone" />
     <notification ref="notification" />
     <historyLog ref="historyLog" :gridData="gridData" />
-    <signTaskSetting ref="signTaskSetting" :autoTaskStatus="autoTaskStatus" />
+    <signTaskSetting ref="signTaskSetting" :autoTaskStatus.sync="autoTaskStatus" />
   </div>
 </template>
 
@@ -87,7 +87,7 @@ export default {
       gridData: [],
       autoTaskStatus: {
         formTask: false,
-        signTask: true
+        signTask: false
       }
     }
   },
@@ -129,13 +129,25 @@ export default {
         })
     },
     getTaskSetting() {
-      this.$refs.signTaskSetting.showDialog() //// TODO: 删除此项
       this.$axios
         .post('/api/getRemoteSetting', this.$qs.stringify(this.apiKeyForm))
         .then((res) => {
-          console.log(res.data)
-           //if (data.code == something) then...
-          this.$refs.historyLog.showDialog()
+          const result = res.data
+          if (result.code != 0) {
+            Message({
+              message: result.msg,
+              type: 'error',
+              duration: 0,
+              showClose: true,
+            })
+            return
+          }
+          const data = result.data
+          this.autoTaskStatus.formTask =
+            (data.formTaskEnable == null) ? false : JSON.parse(data.formTaskEnable)
+          this.autoTaskStatus.signTask =
+            (data.signTaskEnable == null) ? false : JSON.parse(data.signTaskEnable)
+          this.$refs.signTaskSetting.showDialog()
         })
         .catch((err) => {
           console.log(err)

@@ -3,11 +3,11 @@ const { RedisOP } = require('../redis/redis-operation')
 
 /**
  * Server酱消息推送
- * 
- * @param {string} sckey 
- * @param {string} title 
- * @param {string} msg 
- * 
+ *
+ * @param {string} sckey
+ * @param {string} title
+ * @param {string} msg
+ *
  * @return {Promise} 仅resolve. resolve形如{code: 0, msg: 'OK'}的值
  */
 async function severChanSend(sckey, title, msg) {
@@ -48,9 +48,9 @@ async function severChanSend(sckey, title, msg) {
 
 /**
  * qmsg QQ消息推送
- * 
- * @param {string} key 
- * @param {string} msg 
+ *
+ * @param {string} key
+ * @param {string} msg
  * @return {Promise} 仅resolve. resolve形如{code: 0, msg: 'OK'}的值
  */
 async function qmsgSend(key, msg) {
@@ -94,10 +94,10 @@ async function qmsgSend(key, msg) {
 
 /**
  * iOS Bark 消息推送
- * 
- * @param {string} key 
+ *
+ * @param {string} key
  * @param {string} title
- * @param {string} msg 
+ * @param {string} msg
  */
 async function barkSend(key, title, msg) {
     let url = `https://api.day.app/${key}/${title}/${msg}`
@@ -138,15 +138,12 @@ async function barkSend(key, title, msg) {
 
 // TODO: 可能需要在此记录操作结果
 /**
- * 
- * @param {object} redisClient
+ *
+ * @param {class RedisOP} client
  * @param {object} data 包含userID, type, apiKey, title, content, isTest字段
  * @return {object} 返回形{code: 0, msg: 'OK'}的值
  */
-async function notificationSend(redisClient, data) {
-    // 限制并发请求
-    let client = new RedisOP(redisClient)
-    
+async function notificationSend(client, data) {
     const userID = data.userID
 
     let noticeLockID = `noticeLock:${userID}`
@@ -189,15 +186,15 @@ async function notificationSend(redisClient, data) {
 }
 
 /**
- * 获取用户保存的通知方式
- * 
- * @param {object} redisClient 
- * @param {string} userID 
+ * 获取用户保存的通知方式(考虑弃用)
+ *
+ * @param {class RedisOP} client
+ * @param {string} userID
  */
-async function getUserNoticeType(redisClient, userID) {
+async function getUserNoticeType(client, userID) {
     let response = { code: 0, msg: 'OK' }
 
-    let client = new RedisOP(redisClient)
+
     let result = await client.getValue(`user:${userID}`, 'notification')
     if (result[0] == null) {
         response = { code: 1, msg: '您还未指定通知方式!' }
@@ -213,4 +210,4 @@ async function getUserNoticeType(redisClient, userID) {
 exports.severChanSend = severChanSend
 exports.qmsgSend = qmsgSend
 exports.notificationSend = notificationSend
-exports.getUserNoticeType = getUserNoticeType
+//exports.getUserNoticeType = getUserNoticeType
