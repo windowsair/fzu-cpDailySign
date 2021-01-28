@@ -32,7 +32,7 @@ const Parameter = require('parameter')
 const { getCpDailyInfo, getMessageCode, verifyMessageCode, verifyUserLogin, loginGetCookie, getCpdailyExtension } = require('./components/cpDaily/cpDailyLogin')
 
 const { notificationSend } = require('./components/notification/notification')
-const { judgeTimeRange, logTaskMsg, getUserSignLog, cronCpDailyTask, systemNotice, mainCpDailyTask, getTaskStatus } = require('./components/utils/utils')
+const { judgeTimeRange, logTaskMsg, getUserSignLog, cronCpDailyTask, systemNotice, mainCpDailyTask, getTaskStatus, deleteSuccessLog } = require('./components/utils/utils')
 
 
 const fs = require("fs")
@@ -772,5 +772,12 @@ var job1 = new CronJob('*/30 1-12 * * *', function () {
     let userClient = new RedisOP(redisUserClient)
     let logClient = new RedisOP(redisLogClient)
     cronCpDailyTask(userClient, logClient, 60 * 60 * 12) // 12小时过期
+}, null, true)
+
+
+// 0点1分 重置成功字段
+var clearJob1 = new CronJob('1 0 * * *', function () {
+    let logClient = new RedisOP(redisLogClient)
+    deleteSuccessLog(logClient)
 }, null, true)
 

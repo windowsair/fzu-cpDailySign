@@ -102,7 +102,7 @@ async function getTaskStatus(userID, userClient, logClient) {
  *
  * @return {object} 执行结果,形如{code: 0, msg: 'OK'}的值
  */
-async function mainCpDailyTask(userID, userClient, logClient, task, isFirstTime=false) {
+async function mainCpDailyTask(userID, userClient, logClient, task, isFirstTime = false) {
     // step1: 获取用户信息
     let userInfo = await userClient.getValue(
         userID, ['loginData', 'notification'],
@@ -154,7 +154,7 @@ async function mainCpDailyTask(userID, userClient, logClient, task, isFirstTime=
         if (formResult.code == 0) {
             successSum++
             await logClient.addSetMember('successSubmit', userID)
-        } else{
+        } else {
             errorMsgArr.push(formResult.msg)
         }
     }
@@ -272,6 +272,25 @@ function cronCpDailyTask(userClient, logClient, expireTime) {
 
 
 /**
+ * 删除successSign和successSubmit记录
+ *
+ * @param {class redisOP} logClient
+ */
+async function deleteSuccessLog(logClient) {
+    logClient.deleteKey(['successSign', 'successSubmit'])
+        .then((opSuccessNum) => {
+            if (opSuccessNum != 2) {
+                console.log('无法删除success字段')
+            }
+        }).catch(err => {
+            console.log('删除success字段发生错误')
+            console.log(err)
+            return
+        })
+}
+
+
+/**
  * 系统通知推送
  *
  * @param {class RedisOP} userClient
@@ -365,8 +384,9 @@ function systemNotice(userClient, logClient) {
 exports.judgeTimeRange = judgeTimeRange
 exports.logTaskMsg = logTaskMsg
 exports.getUserSignLog = getUserSignLog
+exports.deleteSuccessLog = deleteSuccessLog
 exports.cronCpDailyTask = cronCpDailyTask
-exports.mainCpDailyTask= mainCpDailyTask
+exports.mainCpDailyTask = mainCpDailyTask
 exports.systemNotice = systemNotice
 
 

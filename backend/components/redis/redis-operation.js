@@ -52,6 +52,17 @@ class RedisOP {
     }
 
     /**
+     * 删除指定的一个或多个key
+     *
+     * @param {string | string []} key
+     */
+    deleteKey(key) {
+        return new Promise((resolve, reject) => {
+            this.#instance.del(key, cb.bind([resolve, reject]))
+        })
+    }
+
+    /**
      * 判断hash类型key中指定的field是否存在
      *
      * @param {string} key
