@@ -223,7 +223,12 @@ async function loginGetCookie(cpDailyInfo, loginData) {
     // step2: 重定向
     //// TODO: fzu only
     config.headers.Host = 'id.fzu.edu.cn'
-    config.url = redirect.response.headers['location']
+    try {
+        config.url = redirect.response.headers['location']
+    } catch (error) {
+        return null
+    }
+
 
 
     ;[redirect, resSomething] = await to(axios(config))
@@ -234,7 +239,11 @@ async function loginGetCookie(cpDailyInfo, loginData) {
 
     // step3: 重定向
     config.headers.Host = fzuAuth.host
-    config.url = redirect.response.headers['location']
+    try {
+        config.url = redirect.response.headers['location']
+    } catch (error) {
+        return null
+    }
 
 
     ;[redirect, resSomething] = await to(axios(config))
@@ -325,7 +334,11 @@ async function relogin(cpDailyInfo, loginData) {
     // 开始获取新的Cookie
     config.headers.Host = 'id.fzu.edu.cn'
     config.headers.Cookie = `CASTGC=${loginData.tgc}; AUTHTGC=${encryptTgc}`
-    config.url = redirect.response.headers['location']
+    try {
+        config.url = redirect.response.headers['location']
+    } catch (error) {
+        return null
+    }
 
 
     ;[redirect, resSomething] = await to(axios(config))
@@ -336,7 +349,11 @@ async function relogin(cpDailyInfo, loginData) {
 
     // 继续进行重定向
     config.headers.Host = fzuAuth.host
-    config.url = redirect.response.headers['location']
+    try {
+        config.url = redirect.response.headers['location']
+    } catch (error) {
+        return null
+    }
 
 
     ;[redirect, resSomething] = await to(axios(config))

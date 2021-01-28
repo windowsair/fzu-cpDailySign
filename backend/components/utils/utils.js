@@ -199,9 +199,10 @@ async function mainCpDailyTask(userID, userClient, logClient, task, isFirstTime 
  * @param {class RedisOP} redisUserClient
  * @param {class RedisOP} redisLogClient
  * @param {number} expireTime 任务重置时间
+ * @param {bool} debug debug模式,直接执行
  */
-function cronCpDailyTask(userClient, logClient, expireTime) {
-    if (process.env.NODE_APP_INSTANCE === '10') {
+function cronCpDailyTask(userClient, logClient, expireTime, debug = false) {
+    if (process.env.NODE_APP_INSTANCE === '10' || debug) {
         console.log('start cron!')
     } else {
         return
