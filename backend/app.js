@@ -772,12 +772,12 @@ var job1 = new CronJob('*/30 1-12 * * *', function () {
     let userClient = new RedisOP(redisUserClient)
     let logClient = new RedisOP(redisLogClient)
     cronCpDailyTask(userClient, logClient, 60 * 60 * 12) // 12小时过期
-}, null, true)
+}, null, true, 'Asia/Shanghai')
 
 
 // 0点1分 重置成功字段
 var clearJob1 = new CronJob('1 0 * * *', function () {
     let logClient = new RedisOP(redisLogClient)
     deleteSuccessLog(logClient)
-}, null, true)
+}, null, true, 'Asia/Shanghai')
 

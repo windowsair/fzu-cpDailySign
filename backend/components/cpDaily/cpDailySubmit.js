@@ -11,7 +11,7 @@ const formQA = JSON.parse(formFile)
 
 const queryTaskCommonHeader = {
     'Accept': 'application/json, text/plain, */*',
-    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 (4437776896)cpdaily/8.2.14  wisedu/8.2.14',
+    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 (4437776896)cpdaily/8.2.18  wisedu/8.2.18',
     'Accept-Encoding': 'gzip,deflate',
     'Accept-Language': 'zh-CN,en-US;q=0.8',
     'Content-Type': 'application/json;charset=UTF-8',

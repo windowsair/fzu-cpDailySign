@@ -1,7 +1,11 @@
 const axios = require('axios')
+const https = require("https")
 const to = require('await-to-js').default
 const crypto = require('../crypto/crypto')
 
+// 延长存活时间
+axios.defaults.timeout = 30000
+axios.defaults.httpsAgent = new https.Agent({ keepAlive: true })
 
 async function doLoginRes(axiosConfig) {
     let res, err
