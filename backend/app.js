@@ -768,7 +768,7 @@ app.get('/api/captcha.jpg', captcha.image())
 // 定时任务
 
 // 5-7点每25分钟执行一次
-var job1 = new CronJob('*/30 1-12 * * *', function () {
+var job1 = new CronJob('*/30 6-12 * * *', function () {
     let userClient = new RedisOP(redisUserClient)
     let logClient = new RedisOP(redisLogClient)
     cronCpDailyTask(userClient, logClient, 60 * 60 * 12) // 12小时过期

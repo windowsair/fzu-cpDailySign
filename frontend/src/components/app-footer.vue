@@ -26,7 +26,7 @@ export default {
   },
   methods: {
     updateText() {
-      const cors = 'https://proxy.cors.eu.org/'
+      const cors = 'https://netnr-proxy.azurewebsites.net/'
       const url = 'https://api.github.com/repos/windowsair/fzu-cpDailySign/commits/master'
       this.$axios.get(cors + url, {withCredentials: false}).then((res) => {
           let data = res.data;
@@ -38,7 +38,7 @@ export default {
       })
     },
     updateAnnouncement(){
-      const cors = 'https://proxy.cors.eu.org/'
+      const cors = 'https://netnr-proxy.azurewebsites.net/'
       // 使用Github gists 存储站点的公告
       const gistID = '30c6f0a0a5fe8dfecff3a914e245745f'
       const url = `https://api.github.com/gists/${gistID}`
