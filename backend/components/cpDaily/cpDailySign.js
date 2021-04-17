@@ -64,7 +64,8 @@ function signFormFill(task, address='福州大学第二田径场', lon=119.20429
 
         abnormalReason: ' ', // 不在签到范围的反馈原因,可以不填
         position: address, // 注意位置的填写
-        uaIsCpadaily: true
+        uaIsCpadaily: true,
+        signVersion: '1.0.0',
     }
 
     let extraData = []
