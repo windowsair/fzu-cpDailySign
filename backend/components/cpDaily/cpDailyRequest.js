@@ -20,7 +20,7 @@ async function doLoginRes(axiosConfig) {
 /**
  * 就地解密数据请求
  * @param {object} axiosConfig 请求配置
- * @param {string} key DES密钥
+ * @param {string} key 相应的密钥
  */
 async function doLoginResWithDecrypt(axiosConfig, key) {
     let res, err
@@ -38,9 +38,10 @@ async function doLoginResWithDecrypt(axiosConfig, key) {
         if (data.errMsg != null) {
             return data
         }
+        console.log(data.data)
         // 就地解密
-        const des = new crypto.DESCrypto
-        let result = des.decrypt(data.data, key)
+        const aes = new crypto.AESCrypto
+        let result = aes.decrypt(data.data, key)
         result = JSON.parse(result)
 
         data.data = result
