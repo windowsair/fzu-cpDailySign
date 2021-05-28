@@ -202,7 +202,7 @@ async function mainCpDailyTask(userID, userClient, logClient, task, isFirstTime 
  * @param {bool} debug debug模式,直接执行
  */
 function cronCpDailyTask(userClient, logClient, expireTime, debug = false) {
-    if (process.env.NODE_APP_INSTANCE === '10' || debug) {
+    if (process.env.NODE_APP_INSTANCE === '0' || debug) {
         console.log('start cron!')
     } else {
         return
@@ -278,6 +278,11 @@ function cronCpDailyTask(userClient, logClient, expireTime, debug = false) {
  * @param {class redisOP} logClient
  */
 async function deleteSuccessLog(logClient) {
+    if (process.env.NODE_APP_INSTANCE === '0') {
+        console.log('start cron!')
+    } else {
+        return
+    }
     logClient.deleteKey(['successSign', 'successSubmit'])
         .then((opSuccessNum) => {
             if (opSuccessNum != 2) {

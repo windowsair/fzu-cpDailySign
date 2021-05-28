@@ -38,7 +38,6 @@ async function doLoginResWithDecrypt(axiosConfig, key) {
         if (data.errMsg != null) {
             return data
         }
-        console.log(data.data)
         // 就地解密
         const aes = new crypto.AESCrypto
         let result = aes.decrypt(data.data, key)

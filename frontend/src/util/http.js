@@ -1,7 +1,7 @@
 import axios from 'axios'
 import {
 	Loading,
-	MessageBox,
+	Message,
 	Notification
 } from 'element-ui'
 
@@ -37,7 +37,7 @@ axios.interceptors.response.use(
         if(loadingInstance){
             loadingInstance.close()
         }
-        
+
         return response
     },
     error => {
@@ -45,7 +45,7 @@ axios.interceptors.response.use(
             if(loadingInstance){
                 loadingInstance.close()
             }
-            
+
             if (error.response) {
                 let res = error.response
                 let message = '处理请求时遇到了问题，请稍后再试'
@@ -73,12 +73,9 @@ axios.interceptors.response.use(
             }
             let err = error + '';
             if (err.indexOf('Network Error') > -1) {
-                MessageBox({
-                    title: '网络出错',
+                Message({
                     message: '向服务器发起资源请求时出错',
                     type: 'error',
-                    closeOnClickModal: false,
-                    closeOnPressEscape: false
                 })
             }
             return Promise.reject(error.response.data)

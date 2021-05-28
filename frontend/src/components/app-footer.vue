@@ -26,8 +26,8 @@ export default {
   },
   methods: {
     updateText() {
-      const cors = 'https://netnr-proxy.azurewebsites.net/'
-      const url = 'api.github.com/repos/windowsair/fzu-cpDailySign/commits/master'
+      const cors = 'https://api.allorigins.win/raw?url='
+      const url = 'https://api.github.com/repos/windowsair/fzu-cpDailySign/commits/master'
       this.$axios.get(cors + url, {withCredentials: false}).then((res) => {
           let data = res.data;
 
@@ -38,10 +38,10 @@ export default {
       })
     },
     updateAnnouncement(){
-      const cors = 'https://netnr-proxy.azurewebsites.net/'
+      const cors = 'https://api.allorigins.win/raw?url='
       // 使用Github gists 存储站点的公告
       const gistID = '30c6f0a0a5fe8dfecff3a914e245745f'
-      const url = `api.github.com/gists/${gistID}`
+      const url = `https://api.github.com/gists/${gistID}`
       this.$axios.get(cors + url, {withCredentials: false}).then((res) => {
           // 应该保证content内容不过大,否则将导致截断
           const data = JSON.parse(res.data.files['announcements.json'].content)
