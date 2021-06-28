@@ -378,7 +378,7 @@ async function getNewCookie(userID, userClient, cpDailyInfo, loginData) {
     let result = await relogin(cpDailyInfo, loginData)
 
     if (result == 0) {
-        return { code: 0, msg: '无需获取', data: loginCookie }
+        return { code: 0, msg: '无需获取', data: loginData }
     }
     else if (result == -1) {
         return { code: -1, msg: 'Cookie获取失败!' }
