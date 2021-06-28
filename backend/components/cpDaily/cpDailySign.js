@@ -198,7 +198,7 @@ async function signTask(userID, userClient, loginData, location) {
             }
             let result = await getNewCookie(userID, userClient, cpDailyInfo, loginData)
             if (result.code != 0) {
-                return
+                return { code: -1, msg: '签到失败,原因是登录状态过期' }
             }
             loginCookie = result.data
             continue
