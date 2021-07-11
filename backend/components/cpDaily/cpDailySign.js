@@ -15,7 +15,7 @@ async function getUnsignedTasks(cookie) {
             'Connection': 'keep-alive',
             'Accept': 'application/json, text/plain, */*',
             'X-Requested-With': 'XMLHttpRequest',
-            'User-Agent': 'CampusNext/8.2.24 (iPhone; iOS 13.3.1; Scale/2.00)',
+            'User-Agent': 'CampusNext/9.0.5 (iPhone; iOS 13.3.1; Scale/2.00)',
             'Content-Type': 'application/json',
             'Accept-Encoding': 'gzip,deflate',
             'Accept-Language': 'zh-CN,en-US;q=0.8',
@@ -39,7 +39,7 @@ async function getDetailTask(cookie, task) {
         url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/detailSignInstance`, // detailSignInstance detailSignTaskInst
         headers: {
             'Accept': 'application/json, text/plain, */*',
-            'User-Agent': 'CampusNext/8.2.24 (iPhone; iOS 13.3.1; Scale/2.00)',
+            'User-Agent': 'CampusNext/9.0.5 (iPhone; iOS 13.3.1; Scale/2.00)',
             'content-type': 'application/json',
             'Accept-Encoding': 'gzip,deflate',
             'Accept-Language': 'zh-CN,en-US;q=0.8',
@@ -207,8 +207,13 @@ async function signTask(userID, userClient, loginData, location) {
         if (unsignedTaskResult.code == 999) {
             return { code: -1, msg: '签到失败,原因是登录状态过期' }
         }
-        else if (unsignedTaskResult.datas.unSignedTasks.length < 1) {
-            return { code: 1, msg: '暂未发布签到任务或您已经签到' }
+        try {
+            if (unsignedTaskResult.datas.unSignedTasks.length < 1) {
+                return { code: 1, msg: '暂未发布签到任务或您已经签到' }
+            }
+        } catch (err) {
+            console.log("unsignedtask")
+            console.log(JSON.stringify(unsignedTaskResult))
         }
 
         break

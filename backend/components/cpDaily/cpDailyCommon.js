@@ -50,7 +50,7 @@ const fzuAuth = {
 const headerCommon = {
     'SessionToken': '',
     'clientType': 'CPDAILY',
-    'User-Agent': 'CampusNext/8.2.24 (iPhone; iOS 13.3.1; Scale/2.00)',
+    'User-Agent': 'CampusNext/9.0.5 (iPhone; iOS 13.3.1; Scale/2.00)',
     'deviceType': '2',
     'CpdailyStandAlone': '0',
     'CacheTimeValue': '0',

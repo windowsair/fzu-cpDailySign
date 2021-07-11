@@ -374,6 +374,11 @@ app.post('/api/verifyMsgCode', (req, res) => {
             sessionToken: verifyResult.data.sessionToken
         }
 
+        if (!tgc.length) {
+            response = { code: 4, msg: 'tgc获取失败!' }
+            res.send(response)
+        }
+
         // step3: 获取Cookie
         let cookie = await loginGetCookie(cpDailyInfo, loginData)
         const maxAge = 2592000

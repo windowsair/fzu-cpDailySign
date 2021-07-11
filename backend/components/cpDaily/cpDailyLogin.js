@@ -12,7 +12,7 @@ class FillExtension {
         'lon': 119.204299, // 福大的经纬度
         'lat': 26.064609,
         'model': 'iPhone10,1',
-        'appVersion': '8.2.24',
+        'appVersion': '9.0.5',
         'systemVersion': '13.3.1',
         'systemName': 'iOS',
         'userId': '', // 稍后构造, 注意大小写
@@ -193,14 +193,14 @@ async function loginGetCookie(cpDailyInfo, loginData) {
         method: 'get',
         url: `https://${fzuAuth.host}/wec-portal-mobile/client/userStoreAppList`,
         headers: {
-            'clientType': 'cpdaily_student',
-            'User-Agent': 'CampusNext/8.2.24 (iPhone; iOS 13.3.1; Scale/2.00)',
-            'deviceType': '2',
-            'CpdailyStandAlone': '0',
+            //'clientType': 'cpdaily_student',
+            'User-Agent': 'CampusNext/9.0.5 (iPhone; iOS 13.3.1; Scale/2.00)',
+            // 'deviceType': '2',
+            // 'CpdailyStandAlone': '0',
             'Cache-Control': 'max-age=0',
             'Connection': 'Keep-Alive',
-            'Accept-Encoding': 'gzip',
-
+            //'Accept-Encoding': 'gzip',
+            'CpdailyClientType': 'CPDAILY',
             'TGC': encryptTgc,
             'AmpCookies': encryptAmp,
             'SessionToken': encryptSessionToken,
@@ -293,7 +293,7 @@ async function relogin(cpDailyInfo, loginData) {
         url: `https://${fzuAuth.host}/wec-portal-mobile/client/userStoreAppList`,
         headers: {
             'clientType': 'cpdaily_student',
-            'User-Agent': 'CampusNext/8.2.24 (iPhone; iOS 13.3.1; Scale/2.00)',
+            'User-Agent': 'CampusNext/9.0.5 (iPhone; iOS 13.3.1; Scale/2.00)',
             'deviceType': '2',
             'CpdailyStandAlone': '0',
 
