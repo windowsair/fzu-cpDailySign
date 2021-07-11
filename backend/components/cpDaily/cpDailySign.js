@@ -207,6 +207,7 @@ async function signTask(userID, userClient, loginData, location) {
         if (unsignedTaskResult.code == 999) {
             return { code: -1, msg: '签到失败,原因是登录状态过期' }
         }
+
         try {
             if (unsignedTaskResult.datas.unSignedTasks.length < 1) {
                 return { code: 1, msg: '暂未发布签到任务或您已经签到' }
