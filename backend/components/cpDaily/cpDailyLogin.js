@@ -264,7 +264,7 @@ async function loginGetCookie(cpDailyInfo, loginData) {
  *
  * @returns null: 有错误发生 -1: 需要重新登录 0:无需操作 / 否则为获取到的header
  */
-async function relogin(cpDailyInfo, loginData) {
+ async function relogin(cpDailyInfo, loginData) {
     // 相关数据的加密
     const des = new crypto.DESCrypto
     let rawSessionToken = loginData.sessionToken
@@ -292,15 +292,14 @@ async function relogin(cpDailyInfo, loginData) {
         method: 'get',
         url: `https://${fzuAuth.host}/wec-portal-mobile/client/userStoreAppList`,
         headers: {
-            'clientType': 'cpdaily_student',
+            //'clientType': 'cpdaily_student',
             'User-Agent': 'CampusNext/9.0.5 (iPhone; iOS 13.3.1; Scale/2.00)',
-            'deviceType': '2',
-            'CpdailyStandAlone': '0',
-
+            // 'deviceType': '2',
+            // 'CpdailyStandAlone': '0',
             'Cache-Control': 'max-age=0',
             'Connection': 'Keep-Alive',
-            'Accept-Encoding': 'gzip',
-
+            //'Accept-Encoding': 'gzip',
+            'CpdailyClientType': 'CPDAILY',
             'TGC': encryptTgc,
             'AmpCookies': encryptAmp,
             'SessionToken': encryptSessionToken,

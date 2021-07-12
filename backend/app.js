@@ -374,7 +374,7 @@ app.post('/api/verifyMsgCode', (req, res) => {
             sessionToken: verifyResult.data.sessionToken
         }
 
-        if (!tgc.length) {
+        if (!tgcData.length) {
             response = { code: 4, msg: 'tgc获取失败!' }
             res.send(response)
         }
@@ -398,7 +398,7 @@ app.post('/api/verifyMsgCode', (req, res) => {
             }
         } catch (error) {
             console.log('acw_tc 获取失败')
-            response = { code: 3, msg: 'Cookie获取失败!' }
+            response = { code: 3, msg: 'acw_tc 获取失败!' }
             res.send(response)
             return
         }
