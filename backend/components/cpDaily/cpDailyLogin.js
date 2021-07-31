@@ -194,11 +194,11 @@ async function loginGetCookie(cpDailyInfo, loginData) {
         url: `https://${fzuAuth.host}/wec-portal-mobile/client/userStoreAppList`,
         headers: {
             //'clientType': 'cpdaily_student',
-            'User-Agent': 'CampusNext/9.0.5 (iPhone; iOS 13.3.1; Scale/2.00)',
+            'User-Agent': 'CampusNext/9.0.5 (iPhone; iOS 13.2.1; Scale/2.00)',
             // 'deviceType': '2',
             // 'CpdailyStandAlone': '0',
             'Cache-Control': 'max-age=0',
-            'Connection': 'Keep-Alive',
+            //'Connection': 'Keep-Alive',
             //'Accept-Encoding': 'gzip',
             'CpdailyClientType': 'CPDAILY',
             'TGC': encryptTgc,
@@ -207,13 +207,31 @@ async function loginGetCookie(cpDailyInfo, loginData) {
             'CpdailyInfo': cpDailyInfo,
             'Host': fzuAuth.host,
             'tenantId': 'fzu',
-            'Cookie': `CASTGC=${loginData.tgc}; AUTHTGC=${encryptTgc}`
+            'Cookie': ''
         },
         maxRedirects: 0 // 不进行重定向
     }
 
     let resSomething, redirect
+    ;[redirect, resSomething] = await to(axios(config))
+    if (resSomething) {
+        console.log(resSomething)
+        return null
+    }
 
+    let wafCookie = ''
+    redirect.response.headers['set-cookie'].forEach(e => {
+        wafCookie += e.split(';')[0] + ';'
+    })
+
+    // 开始获取新的Cookie
+    config.headers.Cookie = wafCookie
+    try {
+        config.url = redirect.response.headers['location']
+    } catch (error) {
+        console.log(error)
+        return null
+    }
     ;[redirect, resSomething] = await to(axios(config))
     if (resSomething) { // 失败
         console.log(resSomething)
@@ -223,29 +241,38 @@ async function loginGetCookie(cpDailyInfo, loginData) {
     // step2: 重定向
     //// TODO: fzu only
     config.headers.Host = 'id.fzu.edu.cn'
+    config.headers.Cookie = `CASTGC=${loginData.tgc}; AUTHTGC=${encryptTgc}`
     try {
         config.url = redirect.response.headers['location']
     } catch (error) {
         return null
     }
-
-
-
     ;[redirect, resSomething] = await to(axios(config))
     if (resSomething) {
         console.log(resSomething)
         return null
     }
 
-    // step3: 重定向
+    // step3: WAF重定向
     config.headers.Host = fzuAuth.host
+    config.headers.Cookie = wafCookie
     try {
         config.url = redirect.response.headers['location']
     } catch (error) {
         return null
     }
+    ;[redirect, resSomething] = await to(axios(config))
+    if (resSomething) {
+        console.log(resSomething)
+        return null
+    }
 
-
+    // 最后一跳(或许可以省去)
+    try {
+        config.url = redirect.response.headers['location']
+    } catch (error) {
+        return null
+    }
     ;[redirect, resSomething] = await to(axios(config))
     if (resSomething) {
         console.log(resSomething)
@@ -293,11 +320,11 @@ async function loginGetCookie(cpDailyInfo, loginData) {
         url: `https://${fzuAuth.host}/wec-portal-mobile/client/userStoreAppList`,
         headers: {
             //'clientType': 'cpdaily_student',
-            'User-Agent': 'CampusNext/9.0.5 (iPhone; iOS 13.3.1; Scale/2.00)',
+            'User-Agent': 'CampusNext/9.0.5 (iPhone; iOS 13.2.1; Scale/2.00)',
             // 'deviceType': '2',
             // 'CpdailyStandAlone': '0',
             'Cache-Control': 'max-age=0',
-            'Connection': 'Keep-Alive',
+            //'Connection': 'Keep-Alive',
             //'Accept-Encoding': 'gzip',
             'CpdailyClientType': 'CPDAILY',
             'TGC': encryptTgc,
@@ -306,12 +333,12 @@ async function loginGetCookie(cpDailyInfo, loginData) {
             'CpdailyInfo': cpDailyInfo,
             'Host': fzuAuth.host,
             'tenantId': 'fzu',
-            'Cookie': loginData.cookie
+            'Cookie': ''
         },
         maxRedirects: 0 // 不进行重定向
     }
 
-    let res, err, resSomething, redirect
+    let resSomething, redirect
     ;[redirect, resSomething] = await to(axios(config))
     if (resSomething) {
         try {
@@ -330,7 +357,27 @@ async function loginGetCookie(cpDailyInfo, loginData) {
         }
     }
 
+    let wafCookie = ''
+    redirect.response.headers['set-cookie'].forEach(e => {
+        wafCookie += e.split(';')[0] + ';'
+    })
+
     // 开始获取新的Cookie
+    config.headers.Cookie = wafCookie
+    try {
+        config.url = redirect.response.headers['location']
+    } catch (error) {
+        console.log(error)
+        return null
+    }
+    ;[redirect, resSomething] = await to(axios(config))
+    if (resSomething) {
+        console.log(resSomething)
+        return null
+    }
+
+
+    // 继续进行重定向
     config.headers.Host = 'id.fzu.edu.cn'
     config.headers.Cookie = `CASTGC=${loginData.tgc}; AUTHTGC=${encryptTgc}`
     try {
@@ -338,29 +385,37 @@ async function loginGetCookie(cpDailyInfo, loginData) {
     } catch (error) {
         return null
     }
-
-
     ;[redirect, resSomething] = await to(axios(config))
     if (resSomething) {
         console.log(resSomething)
         return null
     }
 
-    // 继续进行重定向
+    // 回到WAF
     config.headers.Host = fzuAuth.host
+    config.headers.Cookie = wafCookie
     try {
         config.url = redirect.response.headers['location']
     } catch (error) {
         return null
     }
-
-
     ;[redirect, resSomething] = await to(axios(config))
     if (resSomething) {
         console.log(resSomething)
         return null
     }
 
+    // 最后一跳(或许可以省去)
+    try {
+        config.url = redirect.response.headers['location']
+    } catch (error) {
+        return null
+    }
+    ;[redirect, resSomething] = await to(axios(config))
+    if (resSomething) {
+        console.log(resSomething)
+        return null
+    }
     return redirect.response.headers
 }
 
@@ -385,13 +440,16 @@ async function getNewCookie(userID, userClient, cpDailyInfo, loginData) {
 
     // 获取到新的cookie
     try {
-        if (result['set-cookie'].length < 2) {
+        if (result['set-cookie'].length < 1) {
             return { code: -1, msg: 'Cookie获取失败!' }
         }
         else {
             let tmp = ''
             for (const item of result['set-cookie']) {
                 tmp += item.split(';')[0] + ';'
+            }
+            if (tmp.indexOf('MOD') == -1) {
+                return { code: -1, msg: 'MOD_CAS获取失败!' }
             }
             result = tmp
         }
@@ -421,3 +479,4 @@ exports.getNewCookie = getNewCookie
 
 exports.getDynamicKey = getDynamicKey
 exports.getCpdailyExtension = getCpdailyExtension
+exports.relogin = relogin

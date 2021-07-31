@@ -29,7 +29,7 @@ const bodyParser = require('body-parser')
 const Parameter = require('parameter')
 
 
-const { getCpDailyInfo, getMessageCode, verifyMessageCode, verifyUserLogin, loginGetCookie, getCpdailyExtension } = require('./components/cpDaily/cpDailyLogin')
+const { getCpDailyInfo, getMessageCode, verifyMessageCode, verifyUserLogin, loginGetCookie, getCpdailyExtension, relogin } = require('./components/cpDaily/cpDailyLogin')
 
 const { notificationSend } = require('./components/notification/notification')
 const { judgeTimeRange, logTaskMsg, getUserSignLog, cronCpDailyTask, systemNotice, mainCpDailyTask, getTaskStatus, deleteSuccessLog } = require('./components/utils/utils')
@@ -384,7 +384,7 @@ app.post('/api/verifyMsgCode', (req, res) => {
         const maxAge = 2592000
 
         try {
-            if (cookie['set-cookie'].length < 2) {
+            if (cookie['set-cookie'].length < 1) {
                 response = { code: 3, msg: 'Cookie获取失败!' }
                 res.send(response)
                 return
@@ -394,6 +394,9 @@ app.post('/api/verifyMsgCode', (req, res) => {
                 cookie['set-cookie'].forEach(e => {
                     tmp += e.split(';')[0] + ';'
                 })
+                if (tmp.indexOf('MOD') == -1) {
+                    return { code: 3, msg: 'MOD_CAS获取失败!' }
+                }
                 cookie = tmp
             }
         } catch (error) {
