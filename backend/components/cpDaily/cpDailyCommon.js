@@ -35,7 +35,8 @@ const cryptoInfo = {
         'XCE927==', // 0x00
         'ST83=@XV', // 0x01
         'QTZ&A@54', // 0x02
-        'b3L26XNL', // 0x03
+        'hYd6YS4V', // 0x03
+        'b3L26XNL', // 0x04
     ]
 
 }
@@ -50,7 +51,7 @@ const fzuAuth = {
 const headerCommon = {
     'SessionToken': '',
     'clientType': 'CPDAILY',
-    'User-Agent': 'CampusNext/9.0.5 (iPhone; iOS 13.3.1; Scale/2.00)',
+    'User-Agent': 'CampusNext/9.0.8 (iPhone; iOS 13.3.1; Scale/2.00)',
     'deviceType': '2',
     'CpdailyStandAlone': '0',
     'CacheTimeValue': '0',

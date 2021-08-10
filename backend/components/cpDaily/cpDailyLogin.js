@@ -12,7 +12,7 @@ class FillExtension {
         'lon': 119.204299, // 福大的经纬度
         'lat': 26.064609,
         'model': 'iPhone10,1',
-        'appVersion': '9.0.5',
+        'appVersion': '9.0.8',
         'systemVersion': '13.3.1',
         'systemName': 'iOS',
         'userId': '', // 稍后构造, 注意大小写
@@ -37,7 +37,7 @@ class FillExtension {
         const des = new crypto.DESCrypto
 
         let originalInfo = des.decrypt(cpDailyInfoEncrypted, cryptoInfo.verDESKey[0x00])
-        return des.encrypt(originalInfo, cryptoInfo.verDESKey[0x03])
+        return des.encrypt(originalInfo, cryptoInfo.verDESKey[0x04])
     }
 }
 
@@ -194,7 +194,7 @@ async function loginGetCookie(cpDailyInfo, loginData) {
         url: `https://${fzuAuth.host}/wec-portal-mobile/client/userStoreAppList`,
         headers: {
             //'clientType': 'cpdaily_student',
-            'User-Agent': 'CampusNext/9.0.5 (iPhone; iOS 13.2.1; Scale/2.00)',
+            'User-Agent': 'CampusNext/9.0.8 (iPhone; iOS 13.2.1; Scale/2.00)',
             // 'deviceType': '2',
             // 'CpdailyStandAlone': '0',
             'Cache-Control': 'max-age=0',
@@ -320,7 +320,7 @@ async function loginGetCookie(cpDailyInfo, loginData) {
         url: `https://${fzuAuth.host}/wec-portal-mobile/client/userStoreAppList`,
         headers: {
             //'clientType': 'cpdaily_student',
-            'User-Agent': 'CampusNext/9.0.5 (iPhone; iOS 13.2.1; Scale/2.00)',
+            'User-Agent': 'CampusNext/9.0.8 (iPhone; iOS 13.2.1; Scale/2.00)',
             // 'deviceType': '2',
             // 'CpdailyStandAlone': '0',
             'Cache-Control': 'max-age=0',
