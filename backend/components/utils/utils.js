@@ -129,12 +129,12 @@ async function mainCpDailyTask(userID, userClient, logClient, task, isFirstTime 
         let [address, lon, lat] = await userClient.getValue(
             userID, ['address', 'lon', 'lat'],
             true)
-        const sginLocation = {
+        const signLocation = {
             address: address,
             lon: lon,
             lat: lat,
         }
-        let signResult = await signTask(userID, userClient, loginData, sginLocation)
+        let signResult = await signTask(userID, userClient, loginData, signLocation)
         if (signResult.code == 0) {
             successSum++
             await logClient.addSetMember('successSign', userID)
@@ -144,10 +144,11 @@ async function mainCpDailyTask(userID, userClient, logClient, task, isFirstTime 
     }
 
     if (task.formTaskEnable) {
-        let [locationInfo] = await userClient.getValue(
-            userID, ['locationInfo'],
+        let [address, locationInfo] = await userClient.getValue(
+            userID, ['address', 'locationInfo'],
             true)
         const formLocation = {
+            address: address,
             locationInfo: locationInfo,
         }
         let formResult = await formTask(userID, userClient, loginData, formLocation)

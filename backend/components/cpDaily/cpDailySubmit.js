@@ -74,7 +74,7 @@ async function getDetailForm(cookie, formWid, collectorWid) {
 }
 
 // 填充表的辅助函数
-function fillForm(rawForm, widInfo, locationInfo) {
+function fillForm(rawForm, widInfo, locationInfo, address) {
     let form = {
         formWid: widInfo.formWid,
         collectWid: widInfo.collectorWid, // 这里命名比较奇怪
@@ -142,6 +142,9 @@ function fillForm(rawForm, widInfo, locationInfo) {
             item.fieldItems = [ answerObject ]
             item.value = answerObject.itemWid
         }
+        else if (item.fieldType == 7) { // 完整地址类型
+            item.value = locationInfo + '/' + address
+        }
         else {
             //// TODO:其他的表单类型暂时不写了
             console.log(item)
@@ -180,7 +183,7 @@ async function tryToSubmit(cookie, cpdailyExtension, form) {
  * @param {string} userID 形如'user:9876543210'
  * @param {class RedisOP} userClient
  * @param {string} loginData 登录数据
- * @param {object} locationInfo 所在地信息 {locationInfo: 'xxx省市区'}
+ * @param {object} locationInfo 所在地信息 {locationInfo: 'xxx省市区', address:'完整的地址'}
  */
 async function formTask(userID, userClient, loginData, locationInfo) {
     // step0 : 验证字段
@@ -193,6 +196,7 @@ async function formTask(userID, userClient, loginData, locationInfo) {
         cookie: 'string',
     }
     const locationRule = {
+        address: 'string',
         locationInfo: 'string',
     }
 
@@ -277,7 +281,7 @@ async function formTask(userID, userClient, loginData, locationInfo) {
         schoolTaskWid: schoolTaskWid
     }
 
-    let formFillResult = fillForm(rawForm, widInfo, locationInfo.locationInfo)
+    let formFillResult = fillForm(rawForm, widInfo, locationInfo.locationInfo, locationInfo.address)
 
     if (formFillResult.code != 0) {
         return { code: formFillResult.code, msg: formFillResult.msg }

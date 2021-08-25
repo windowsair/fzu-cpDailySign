@@ -32,7 +32,7 @@
           ></v-distpicker>
         </el-form-item>
 
-        <el-form-item label="签到地址" prop="address">
+        <el-form-item label="详细地址" prop="address">
           <el-input v-model="settingForm.address" size="large">
           </el-input>
         </el-form-item>
