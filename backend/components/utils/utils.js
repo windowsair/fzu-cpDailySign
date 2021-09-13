@@ -1,7 +1,10 @@
 const { RedisOP } = require('../redis/redis-operation')
 const { signTask } = require('../cpDaily/cpDailySign')
+const { passTask } = require('../cpDaily/cpDailyPass')
 const { formTask } = require('../cpDaily/cpDailySubmit')
 const { notificationSend } = require('../notification/notification')
+const { logTaskMsg } = require('./common')
+
 
 
 /**
@@ -34,27 +37,6 @@ async function takeLongTime() {
 }
 
 
-// TODO: 定时删除过时的数据
-/**
- * 将签到过程中的结果记录到数据库中
- *
- * @param {class RedisOP} logClient
- * @param {string} userID 形如'user:9876543210'
- * @param {string} msg 消息
- * @param {string} type 操作类型
- */
-async function logTaskMsg(logClient, userID, msg, type) {
-    let data = {
-        timeStamp: Math.round(new Date() / 1000),
-        msg: msg,
-        type: type
-    }
-    data = JSON.stringify(data)
-
-    await logClient.pushToList(userID, data)
-
-}
-
 
 /**
  *
@@ -78,16 +60,19 @@ async function getUserSignLog(redisClient, userID) {
  * @returns {object} 需要进行的任务情况
  */
 async function getTaskStatus(userID, userClient, logClient) {
-    let [formTaskEnable, signTaskEnable] = await userClient.getValue(
-        userID, ['formTaskEnable', 'signTaskEnable'],
+    let [formTaskEnable, signTaskEnable, passTaskEnable] = await userClient.getValue(
+        userID, ['formTaskEnable', 'signTaskEnable', 'passTaskEnable'],
         true)
     let formTaskResult = await logClient.isMemberOfSet(
         'successSubmit', userID)
     let signTaskResult = await logClient.isMemberOfSet(
         'successSign', userID)
+    let passTaskResult = await logClient.isMemberOfSet(
+        'successPass', userID)
     return {
         formTaskEnable: formTaskEnable && !formTaskResult,
-        signTaskEnable: signTaskEnable && !signTaskResult
+        signTaskEnable: signTaskEnable && !signTaskResult,
+        passTaskEnable: passTaskEnable && !passTaskResult
     }
 }
 
@@ -120,9 +105,6 @@ async function mainCpDailyTask(userID, userClient, logClient, task, isFirstTime 
     let taskSum = task.formTaskEnable + task.signTaskEnable
     let successSum = 0
     let errorMsgArr = []
-
-    if (!taskSum)
-        return { code: 0, msg: '无任务', waitTime: false }
 
     if (task.signTaskEnable) {
         // 获取位置信息
@@ -160,6 +142,14 @@ async function mainCpDailyTask(userID, userClient, logClient, task, isFirstTime 
         }
     }
 
+    // 通行码任务自行处理
+    if (task.passTaskEnable)
+        passTask(userID, logClient, loginData)
+
+
+    if (!taskSum)
+        return { code: 0, msg: '无任务', waitTime: false }
+
     let msg = ''
     let logType = 'success'
     if (taskSum == successSum) {
@@ -171,7 +161,7 @@ async function mainCpDailyTask(userID, userClient, logClient, task, isFirstTime 
     }
 
     // 始终记录历史
-    await logTaskMsg(logClient, userID, msg, logType)
+    logTaskMsg(logClient, userID, msg, logType)
     // 推送通知
     if (notification && (isFirstTime || logType == 'success')) {
         let noticeData = {
@@ -182,7 +172,7 @@ async function mainCpDailyTask(userID, userClient, logClient, task, isFirstTime 
             title: logType == 'success' ? '任务成功' : '任务失败',
             content: msg
         }
-        await notificationSend(logClient, noticeData)
+        notificationSend(logClient, noticeData)
     }
 
     return {
@@ -220,8 +210,10 @@ function cronCpDailyTask(userClient, logClient, expireTime, debug = false) {
             // 创建一个失败的表
             await logClient.addSetMember('successSign', 0)
             await logClient.addSetMember('successSubmit', 0)
+            await logClient.addSetMember('successPass', 0)
             await logClient.setKeyExpire('successSign', expireTime)
             await logClient.setKeyExpire('successSubmit', expireTime)
+            await logClient.addSetMember('successPass', expireTime)
         }
 
         // 获取用户
@@ -284,7 +276,7 @@ async function deleteSuccessLog(logClient) {
     } else {
         return
     }
-    logClient.deleteKey(['successSign', 'successSubmit'])
+    logClient.deleteKey(['successSign', 'successSubmit', 'successPass'])
         .then((opSuccessNum) => {
             if (opSuccessNum != 2) {
                 console.log('无法删除success字段')
@@ -389,7 +381,6 @@ function systemNotice(userClient, logClient) {
 
 
 exports.judgeTimeRange = judgeTimeRange
-exports.logTaskMsg = logTaskMsg
 exports.getUserSignLog = getUserSignLog
 exports.deleteSuccessLog = deleteSuccessLog
 exports.cronCpDailyTask = cronCpDailyTask

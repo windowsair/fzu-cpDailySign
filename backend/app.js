@@ -29,10 +29,10 @@ const bodyParser = require('body-parser')
 const Parameter = require('parameter')
 
 
-const { getCpDailyInfo, getMessageCode, verifyMessageCode, verifyUserLogin, loginGetCookie, getCpdailyExtension, relogin } = require('./components/cpDaily/cpDailyLogin')
+const { getCpDailyInfo, getMessageCode, verifyMessageCode, verifyUserLogin, loginGetCookie, getCpdailyExtension } = require('./components/cpDaily/cpDailyLogin')
 
 const { notificationSend } = require('./components/notification/notification')
-const { judgeTimeRange, logTaskMsg, getUserSignLog, cronCpDailyTask, systemNotice, mainCpDailyTask, getTaskStatus, deleteSuccessLog } = require('./components/utils/utils')
+const { judgeTimeRange, getUserSignLog, cronCpDailyTask, systemNotice, mainCpDailyTask, getTaskStatus, deleteSuccessLog } = require('./components/utils/utils')
 
 
 const fs = require("fs")
@@ -680,12 +680,13 @@ app.post('/api/getRemoteSetting', (req, res) => {
 
 
     const userID = 'user:' + req.session.studentID
-    const userSetting = ['formTaskEnable', 'signTaskEnable']
+    const userSetting = ['formTaskEnable', 'signTaskEnable', 'passTaskEnable']
     let client = new RedisOP(redisUserClient)
 
     client.getValue(userID, userSetting).then((result) => {
         response.data.formTaskEnable = result[0]
         response.data.signTaskEnable = result[1]
+        response.data.passTaskEnable = result[2]
         res.send(response)
     }).catch(err => {
         console.log(err)
@@ -720,6 +721,7 @@ app.post('/api/taskSetting', (req, res) => {
     const rule = {
         formTaskEnable: { type: 'bool', convertType: convertToBoolean },
         signTaskEnable: { type: 'bool', convertType: convertToBoolean },
+        passTaskEnable: { type: 'bool', convertType: convertToBoolean },
         locationInfo: { type: 'string', allowEmpty: true },
         address: { type: 'string', allowEmpty: true },
         lat: { type: 'number', convertType: 'number' },
@@ -737,8 +739,8 @@ app.post('/api/taskSetting', (req, res) => {
 
     // 实际上有更多的非正常情况
     // 正常从前端发起的请求不会出现这些情况,因此这里不管
-    const { formTaskEnable, signTaskEnable, locationInfo, address, lat, lon } = req.body
-    let userSetting = { formTaskEnable, signTaskEnable }
+    const { formTaskEnable, signTaskEnable, passTaskEnable, locationInfo, address, lat, lon } = req.body
+    let userSetting = { formTaskEnable, signTaskEnable, passTaskEnable }
 
     if (locationInfo.length && locationInfo.split('/').length == 3) {
         userSetting.locationInfo = locationInfo // 位置由省市区构成

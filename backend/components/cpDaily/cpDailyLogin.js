@@ -162,10 +162,17 @@ async function verifyUserLogin(cpDailyInfo, sessionData) {
     return doLoginRes(config)
 }
 
-// 在登录过程中获取cookie
 
-
-async function loginGetCookie(cpDailyInfo, loginData) {
+/**
+ * 登陆过程中获取cookie
+ *
+ * @param {string} cpDailyInfo 加密后的字符串
+ * @param {object} loginData 登录数据
+ * @param {bool} isRelogin 是否用于重新登录
+ *
+ * @returns null: 有错误发生 -1: 需要重新登录 0:无需操作 / 否则为获取到的header
+ */
+async function loginGetCookie(cpDailyInfo, loginData, isRelogin = false) {
     // 相关数据的加密
     const des = new crypto.DESCrypto
     let rawSessionToken = loginData.sessionToken
@@ -205,7 +212,6 @@ async function loginGetCookie(cpDailyInfo, loginData) {
             'AmpCookies': encryptAmp,
             'SessionToken': encryptSessionToken,
             'CpdailyInfo': cpDailyInfo,
-            'Host': fzuAuth.host,
             'tenantId': 'fzu',
             'Cookie': ''
         },
@@ -215,8 +221,23 @@ async function loginGetCookie(cpDailyInfo, loginData) {
     let resSomething, redirect
     ;[redirect, resSomething] = await to(axios(config))
     if (resSomething) {
-        console.log(resSomething)
-        return null
+        if (!isRelogin) {
+            console.log(resSomething)
+            return null
+        }
+
+        try {
+            if (resSomething.data.code == 0) {
+                return 0 // 仍然存活,不需要登录
+            }
+            else {
+                return -1
+            }
+        } catch (error) {
+            console.log(error)
+            return -1
+        }
+
     }
 
     let wafCookie = ''
@@ -240,7 +261,6 @@ async function loginGetCookie(cpDailyInfo, loginData) {
 
     // step2: 重定向
     //// TODO: fzu only
-    config.headers.Host = 'id.fzu.edu.cn'
     config.headers.Cookie = `CASTGC=${loginData.tgc}; AUTHTGC=${encryptTgc}`
     try {
         config.url = redirect.response.headers['location']
@@ -254,7 +274,6 @@ async function loginGetCookie(cpDailyInfo, loginData) {
     }
 
     // step3: WAF重定向
-    config.headers.Host = fzuAuth.host
     config.headers.Cookie = wafCookie
     try {
         config.url = redirect.response.headers['location']
@@ -283,16 +302,8 @@ async function loginGetCookie(cpDailyInfo, loginData) {
 }
 
 
-/**
- * 重新获取新的Cookie
- *
- * @param {string} cpDailyInfo 加密后的字符串
- * @param {object} loginData 登录数据
- *
- * @returns null: 有错误发生 -1: 需要重新登录 0:无需操作 / 否则为获取到的header
- */
- async function relogin(cpDailyInfo, loginData) {
-    // 相关数据的加密
+// 实际上用的是今日校园早期版本的接口
+async function ehallGetCookie(cpDailyInfo, loginData) {
     const des = new crypto.DESCrypto
     let rawSessionToken = loginData.sessionToken
     let encryptSessionToken = des.encrypt(rawSessionToken, cryptoInfo.verDESKey[0x00])
@@ -317,23 +328,16 @@ async function loginGetCookie(cpDailyInfo, loginData) {
 
     let config = {
         method: 'get',
-        url: `https://${fzuAuth.host}/wec-portal-mobile/client/userStoreAppList`,
+        url: `http://ehall.fzu.edu.cn/newmobile/client/userStoreAppList`,
         headers: {
-            //'clientType': 'cpdaily_student',
-            'User-Agent': 'CampusNext/9.0.8 (iPhone; iOS 13.2.1; Scale/2.00)',
-            // 'deviceType': '2',
-            // 'CpdailyStandAlone': '0',
-            'Cache-Control': 'max-age=0',
-            //'Connection': 'Keep-Alive',
-            //'Accept-Encoding': 'gzip',
+            'User-Agent': 'CampusNext/9.0.8 (iPhone; iOS 13.3.1; Scale/2.00)',
             'CpdailyClientType': 'CPDAILY',
             'TGC': encryptTgc,
             'AmpCookies': encryptAmp,
             'SessionToken': encryptSessionToken,
             'CpdailyInfo': cpDailyInfo,
-            'Host': fzuAuth.host,
             'tenantId': 'fzu',
-            'Cookie': ''
+            'Cookie': loginData.cookie
         },
         maxRedirects: 0 // 不进行重定向
     }
@@ -346,80 +350,43 @@ async function loginGetCookie(cpDailyInfo, loginData) {
                 return 0 // 仍然存活,不需要登录
             }
             else {
-                console.log('未存活')
-                console.log(resSomething.data)
                 return -1
             }
         } catch (error) {
-            console.log('未存活')
-            console.log(error)
             return -1
         }
     }
 
-    let wafCookie = ''
-    redirect.response.headers['set-cookie'].forEach(e => {
-        wafCookie += e.split(';')[0] + ';'
-    })
-
     // 开始获取新的Cookie
-    config.headers.Cookie = wafCookie
-    try {
-        config.url = redirect.response.headers['location']
-    } catch (error) {
-        console.log(error)
-        return null
-    }
-    ;[redirect, resSomething] = await to(axios(config))
-    if (resSomething) {
-        console.log(resSomething)
-        return null
-    }
-
-
-    // 继续进行重定向
-    config.headers.Host = 'id.fzu.edu.cn'
     config.headers.Cookie = `CASTGC=${loginData.tgc}; AUTHTGC=${encryptTgc}`
     try {
         config.url = redirect.response.headers['location']
     } catch (error) {
         return null
     }
+
     ;[redirect, resSomething] = await to(axios(config))
     if (resSomething) {
         console.log(resSomething)
         return null
     }
 
-    // 回到WAF
-    config.headers.Host = fzuAuth.host
-    config.headers.Cookie = wafCookie
+    // 继续进行重定向
     try {
         config.url = redirect.response.headers['location']
     } catch (error) {
         return null
     }
+
     ;[redirect, resSomething] = await to(axios(config))
     if (resSomething) {
         console.log(resSomething)
         return null
     }
 
-    // 最后一跳(或许可以省去)
-    try {
-        config.url = redirect.response.headers['location']
-    } catch (error) {
-        return null
-    }
-    ;[redirect, resSomething] = await to(axios(config))
-    if (resSomething) {
-        console.log(resSomething)
-        return null
-    }
     return redirect.response.headers
 }
 
-//// TODO: 重复合并
 
 /**
  *
@@ -428,8 +395,13 @@ async function loginGetCookie(cpDailyInfo, loginData) {
  * @param {string} cpDailyInfo 加密后的字符串
  * @param {object} loginData 旧的登录数据
  */
-async function getNewCookie(userID, userClient, cpDailyInfo, loginData) {
-    let result = await relogin(cpDailyInfo, loginData)
+async function getNewCookie(userID, userClient, cpDailyInfo, loginData, type='normal') {
+    let result
+    if (type == 'ehall') {
+        result = await ehallGetCookie(cpDailyInfo, loginData, true)
+    } else {
+        result = await loginGetCookie(cpDailyInfo, loginData, true)
+    }
 
     if (result == 0) {
         return { code: 0, msg: '无需获取', data: loginData }
@@ -459,7 +431,8 @@ async function getNewCookie(userID, userClient, cpDailyInfo, loginData) {
         const newLoginData = {
             loginData: JSON.stringify(loginData)
         }
-        await userClient.setValue(userID, newLoginData)
+        if (userClient)
+            await userClient.setValue(userID, newLoginData)
         return { code: 0, msg: 'OK', data: result }
     } catch (error) {
         console.log(error)
@@ -474,9 +447,7 @@ exports.verifyMessageCode = verifyMessageCode
 exports.verifyUserLogin = verifyUserLogin
 
 exports.loginGetCookie = loginGetCookie
-// exports.relogin = relogin
 exports.getNewCookie = getNewCookie
 
 exports.getDynamicKey = getDynamicKey
 exports.getCpdailyExtension = getCpdailyExtension
-exports.relogin = relogin

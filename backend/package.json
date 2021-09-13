@@ -23,6 +23,7 @@
     "express-session": "^1.17.1",
     "node-cron": "^2.0.3",
     "parameter": "^3.6.0",
+    "qs": "^6.10.1",
     "redis": "^3.0.2",
     "request": "^2.88.2",
     "svg-captcha-express": "^1.0.8"

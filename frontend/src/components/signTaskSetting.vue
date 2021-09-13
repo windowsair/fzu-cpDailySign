@@ -23,6 +23,10 @@
           <el-switch v-model="autoTaskStatus.signTask"></el-switch>
         </el-form-item>
 
+        <el-form-item label="申请通行码" prop="passTaskStatus">
+          <el-switch v-model="autoTaskStatus.passTask"></el-switch>
+        </el-form-item>
+
         <el-form-item label="填表地址" prop="area">
           <v-distpicker
             type="mobile"
@@ -100,6 +104,7 @@ export default {
 
         this.taskSetting.formTaskEnable = newVal.formTask
         this.taskSetting.signTaskEnable = newVal.signTask
+        this.taskSetting.passTaskEnable = newVal.passTask
       },
       deep: true,
       immediate: true,
@@ -181,6 +186,7 @@ export default {
       taskSetting: {
         formTaskEnable: false,
         signTaskEnable: false,
+        passTaskEnable: false,
         locationInfo: '', // 填表的位置
         address: '',      // 签到的地址
         lat: -1,          // 签到的坐标
