@@ -87,7 +87,8 @@ export default {
       gridData: [],
       autoTaskStatus: {
         formTask: false,
-        signTask: false
+        signTask: false,
+        passTask: false,
       }
     }
   },
@@ -147,6 +148,8 @@ export default {
             (data.formTaskEnable == null) ? false : JSON.parse(data.formTaskEnable)
           this.autoTaskStatus.signTask =
             (data.signTaskEnable == null) ? false : JSON.parse(data.signTaskEnable)
+          this.autoTaskStatus.passTask =
+            (data.passTaskEnable == null) ? false : JSON.parse(data.passTaskEnable)
           this.$refs.signTaskSetting.showDialog()
         })
         .catch((err) => {

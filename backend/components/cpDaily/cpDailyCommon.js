@@ -57,16 +57,20 @@ const headerCommon = {
     'CacheTimeValue': '0',
     'Cache-Control': 'max-age=0',
     'Content-Type': 'application/json; charset=UTF-8',
-    //'Host': 'www.cpdaily.com',
     'Connection': 'Keep-Alive',
     'Accept-Encoding': 'gzip',
 
     'CpdailyInfo': '', // 稍后进行构造
     'tenantId': 'fzu',
+}
 
+const campusUA = {
+    'client': 'CampusNext/9.0.8 (iPhone; iOS 13.3.1; Scale/2.00)',
+    'web': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) cpdaily/9.0.8  wisedu/9.0.8'
 }
 
 
 exports.fzuAuth = fzuAuth
 exports.headerCommon = headerCommon
 exports.cryptoInfo = cryptoInfo
+exports.campusUA = campusUA

@@ -26,9 +26,9 @@ export default {
   },
   methods: {
     updateText() {
-      const cors = 'https://api.allorigins.win/raw?url='
-      const url = 'https://api.github.com/repos/windowsair/fzu-cpDailySign/commits/master'
-      this.$axios.get(cors + url, {withCredentials: false}).then((res) => {
+      // const cors = 'https://api.allorigins.win/raw?url='
+      // const url = 'https://api.github.com/repos/windowsair/fzu-cpDailySign/commits/master'
+      this.$axios.get('/cors/github-commit', {withCredentials: false}).then((res) => {
           let data = res.data;
 
           let commitTime = data.commit.committer.date
@@ -38,11 +38,11 @@ export default {
       })
     },
     updateAnnouncement(){
-      const cors = 'https://api.allorigins.win/raw?url='
+      // const cors = 'https://api.allorigins.win/raw?url='
       // 使用Github gists 存储站点的公告
-      const gistID = '30c6f0a0a5fe8dfecff3a914e245745f'
-      const url = `https://api.github.com/gists/${gistID}`
-      this.$axios.get(cors + url, {withCredentials: false}).then((res) => {
+      // const gistID = '30c6f0a0a5fe8dfecff3a914e245745f'
+      // const url = `https://api.github.com/gists/${gistID}`
+      this.$axios.get('/cors/announcements', {withCredentials: false}).then((res) => {
           // 应该保证content内容不过大,否则将导致截断
           const data = JSON.parse(res.data.files['announcements.json'].content)
           let deadline = data[0].deadline

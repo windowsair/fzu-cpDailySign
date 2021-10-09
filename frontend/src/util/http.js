@@ -17,7 +17,7 @@ let loadingInstance
 // 请求拦截器
 axios.interceptors.request.use(
     config => {
-        if(config.url.startsWith('http')){ // 外部域请求
+        if(config.url.startsWith('http') || config.url.startsWith('/')){ // 外部域请求
             return config
         }
         loadingInstance = Loading.service({
