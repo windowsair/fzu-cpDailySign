@@ -1,9 +1,11 @@
-const { fzuAuth } = require('./cpDailyCommon')
+const { fzuAuth, cryptoInfo } = require('./cpDailyCommon')
 const { doSignRes } = require('./cpDailyRequest')
 const { getNewCookie } = require('../cpDaily/cpDailyLogin')
 const { RedisOP } = require('../redis/redis-operation')
+const crypto = require('../crypto/crypto')
 
 const Parameter = require('parameter')
+const qs = require('qs')
 
 async function getUnsignedTasks(cookie) {
     let data = {}
@@ -15,7 +17,7 @@ async function getUnsignedTasks(cookie) {
             'Connection': 'keep-alive',
             'Accept': 'application/json, text/plain, */*',
             'X-Requested-With': 'XMLHttpRequest',
-            'User-Agent': 'CampusNext/9.0.8 (iPhone; iOS 13.3.1; Scale/2.00)',
+            'User-Agent': 'CampusNext/9.0.12 (iPhone; iOS 13.3.1; Scale/2.00)',
             'Content-Type': 'application/json',
             'Accept-Encoding': 'gzip,deflate',
             'Accept-Language': 'zh-CN,en-US;q=0.8',
@@ -39,7 +41,7 @@ async function getDetailTask(cookie, task) {
         url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/detailSignInstance`, // detailSignInstance detailSignTaskInst
         headers: {
             'Accept': 'application/json, text/plain, */*',
-            'User-Agent': 'CampusNext/9.0.8 (iPhone; iOS 13.3.1; Scale/2.00)',
+            'User-Agent': 'CampusNext/9.0.12 (iPhone; iOS 13.3.1; Scale/2.00)',
             'content-type': 'application/json',
             'Accept-Encoding': 'gzip,deflate',
             'Accept-Language': 'zh-CN,en-US;q=0.8',
@@ -65,7 +67,8 @@ function signFormFill(task, address='福州大学第二田径场', lon=119.20429
         abnormalReason: ' ', // 不在签到范围的反馈原因,可以不填
         position: address, // 注意位置的填写
         uaIsCpadaily: true,
-        signVersion: '1.0.0',
+        // signVersion: '1.0.0', // 9.0.12废弃
+        isNeedExtra: 1,
     }
 
     let extraData = []
@@ -118,6 +121,53 @@ function signFormFill(task, address='福州大学第二田径场', lon=119.20429
     return { code: 0, msg: 'OK', data: form }
 }
 
+
+/**
+ * 将默认的表单项目转换为9.0.12接受的格式
+ *
+ * @param {Object} form 填充好的表格数据
+ * @param {String} cpDailyInfo 加密过的cpDailyInfo
+ * @param {Object} location 位置信息
+ */
+function getCryptForm(form, cpDailyInfo, location) {
+    // TODO: cpDailyInfo 需要解密
+    const des = new crypto.DESCrypto
+    const aes = new crypto.AESCrypto
+    const md5 = crypto.HashMD5
+    const catSecret = cryptoInfo.catSecret
+
+    let cryptCommon = {
+        'bodyString': '',
+        'sign': '',
+        'calVersion': 'fistv',
+        'version': 'first_v2',
+    }
+
+    let originalInfo =  JSON.parse(des.decrypt(cpDailyInfo, cryptoInfo.verDESKey[0x00]))
+    let bodyString = aes.encrypt(JSON.stringify(form), catSecret)
+
+    let strToSign = { // 按照字母升序给出, 偷懒了
+        'appVersion': '9.0.12',
+        'bodyString': bodyString,
+        'deviceId': originalInfo.deviceId,
+        'lat': location.lat,
+        'lon': location.lon,
+        'model': 'iPhone10,1',
+        'systemName': 'iOS',
+        'systemVersion': '13.3.1',
+        'userId': originalInfo.userId,
+    }
+    strToSign = qs.stringify(strToSign, { encode: false }) + `&${catSecret}`
+    let sign = md5.getMD5String(strToSign)
+
+    let data = { ...cryptCommon, ...originalInfo }
+    data.lon = location.lon
+    data.lat = location.lat
+    data.bodyString = bodyString
+    data.sign = sign
+
+    return data
+}
 
 async function tryToSign(cookie, cpdailyExtension, form) {
     let data = form
@@ -244,9 +294,9 @@ async function signTask(userID, userClient, loginData, location) {
     if (form.code != 0) {
         return { code: 2, msg: form.msg }
     }
+    let signData = getCryptForm(form.data, cpDailyInfo, location)
 
-
-    let signResult = await tryToSign(loginCookie, cpDailyExtension, form.data)
+    let signResult = await tryToSign(loginCookie, cpDailyExtension, signData)
     if (!signResult) {
         return { code: -1, msg: '签到失败,系统出错' }
     }

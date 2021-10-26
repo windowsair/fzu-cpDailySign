@@ -12,7 +12,7 @@ class FillExtension {
         'lon': 119.204299, // 福大的经纬度
         'lat': 26.064609,
         'model': 'iPhone10,1',
-        'appVersion': '9.0.8',
+        'appVersion': '9.0.12',
         'systemVersion': '13.3.1',
         'systemName': 'iOS',
         'userId': '', // 稍后构造, 注意大小写
@@ -445,7 +445,7 @@ async function ehallGetCookie(cpDailyInfo, loginData) {
         method: 'get',
         url: `http://ehall.fzu.edu.cn/newmobile/client/userStoreAppList`,
         headers: {
-            'User-Agent': 'CampusNext/9.0.8 (iPhone; iOS 13.3.1; Scale/2.00)',
+            'User-Agent': 'CampusNext/9.0.12 (iPhone; iOS 13.3.1; Scale/2.00)',
             'CpdailyClientType': 'CPDAILY',
             'TGC': encryptTgc,
             'AmpCookies': encryptAmp,
