@@ -207,15 +207,15 @@ async function loginGetCookie(cpDailyInfo, loginData, isRelogin = false) {
             'CpdailyClientType': 'CPDAILY',
             'TGC': encryptTgc,
             'AmpCookies': encryptAmp,
-            'SessionToken': encryptSessionToken,
+            //'SessionToken': encryptSessionToken,
             'CpdailyInfo': cpDailyInfo,
-            'tenantId': 'fzu',
+            //'tenantId': 'fzu',
             'Cookie': ''
         },
         maxRedirects: 0 // 不进行重定向
     }
 
-    let originalCookie = `CASTGC=${loginData.tgc}; AUTHTGC=${encryptTgc}`
+    let originalCookie = `CASTGC=${loginData.tgc}; AUTHTGC=${loginData.tgc}`
     let res = await originalAuthInterface(config, originalCookie, isRelogin)
     if (res == -1 && isRelogin) {
         return -1
