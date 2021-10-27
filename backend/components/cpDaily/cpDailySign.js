@@ -68,7 +68,6 @@ function signFormFill(task, address='福州大学第二田径场', lon=119.20429
         position: address, // 注意位置的填写
         uaIsCpadaily: true,
         // signVersion: '1.0.0', // 9.0.12废弃
-        isNeedExtra: 1,
     }
 
     let extraData = []
@@ -135,6 +134,9 @@ function getCryptForm(form, cpDailyInfo, location) {
     const aes = new crypto.AESCrypto
     const md5 = crypto.HashMD5
     const catSecret = cryptoInfo.catSecret
+
+    location.lat = location.lat.toString()
+    location.lon = location.lon.toString()
 
     let cryptCommon = {
         'bodyString': '',
