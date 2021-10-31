@@ -168,8 +168,8 @@ export default {
         // 全部为空, 继续
         callback()
       } else {
-        let [lon, lat] = value.split(',')
-        ;[lon, lat] = qqMapToBMap(lon, lat)
+        let [lat, lon] = value.split(',')
+        ;[lat, lon] = qqMapToBMap(lat, lon)
         if (lon === false || lat === false) {
           callback(new Error('请输入正确的地理坐标'))
         } else {
