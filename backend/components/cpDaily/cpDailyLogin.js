@@ -216,7 +216,7 @@ async function loginGetCookie(cpDailyInfo, loginData, isRelogin = false) {
     }
 
     let originalCookie = `CASTGC=${loginData.tgc}; AUTHTGC=${loginData.tgc}`
-    let res = await originalAuthInterface(config, originalCookie, isRelogin)
+    let res = await originalAuthInterface({...config}, originalCookie, isRelogin)
     if (res == -1 && isRelogin) {
         return -1
     }
@@ -226,7 +226,7 @@ async function loginGetCookie(cpDailyInfo, loginData, isRelogin = false) {
 
     // 尝试另外一种
     originalCookie  = `clientType=cpdaily_student; sessionToken=${rawSessionToken}; tenantId=fzu`
-    res = await oauth2Interface(config, originalCookie, isRelogin)
+    res = await oauth2Interface({...config}, originalCookie, isRelogin)
     return res
 }
 
