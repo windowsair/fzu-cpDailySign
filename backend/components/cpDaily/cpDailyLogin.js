@@ -178,6 +178,7 @@ async function loginGetCookie(cpDailyInfo, loginData, isRelogin = false) {
     let rawSessionToken = loginData.sessionToken
     let encryptSessionToken = des.encrypt(rawSessionToken, cryptoInfo.verDESKey[0x00])
     let encryptTgc = des.encrypt(loginData.tgc, cryptoInfo.verDESKey[0x00])
+    let res
 
     let amp = {
         AMP1: [{
@@ -215,8 +216,18 @@ async function loginGetCookie(cpDailyInfo, loginData, isRelogin = false) {
         maxRedirects: 0 // 不进行重定向
     }
 
+    // step1: 获取WAF Cookie与下一级地址
+    res = await wafAccess(config)
+    if (res == null) {
+        console.log('can not get waf cookie')
+        return null
+    }
+    config.headers.Cookie = res.cookie
+    config.url = res.url
+
+    // step2: 开始获取
     let originalCookie = `CASTGC=${loginData.tgc}; AUTHTGC=${loginData.tgc}`
-    let res = await originalAuthInterface({...config}, originalCookie, isRelogin)
+    res = await originalAuthInterface({ ...config }, originalCookie)
     if (res == -1 && isRelogin) {
         return -1
     }
@@ -225,49 +236,46 @@ async function loginGetCookie(cpDailyInfo, loginData, isRelogin = false) {
     }
 
     // 尝试另外一种
-    originalCookie  = `clientType=cpdaily_student; sessionToken=${rawSessionToken}; tenantId=fzu`
-    res = await oauth2Interface({...config}, originalCookie, isRelogin)
+    originalCookie = `clientType=cpdaily_student; sessionToken=${rawSessionToken}; tenantId=fzu`
+    res = await oauth2Interface({ ...config }, originalCookie)
     return res
 }
 
-async function originalAuthInterface(config, originalCookie, isRelogin = false) {
-    // step1: 获取WAF Cookie
+async function wafAccess(config) {
     config.headers['User-Agent'] = campusUA.client
     let resSomething, redirect
     ;[redirect, resSomething] = await to(axios(config))
     if (resSomething) {
-        if (!isRelogin) {
-            console.log(resSomething)
-            return null
-        }
+        // if (!isRelogin) {
+        //     console.log(resSomething)
+        //     return null
+        // }
 
-        try {
-            if (resSomething.data.code == 0) {
-                return 0 // 仍然存活,不需要登录
-            }
-            else {
-                return -1
-            }
-        } catch (error) {
-            console.log(error)
-            return -1
-        }
-
+        // try {
+        //     if (resSomething.data.code == 0) {
+        //         return 0 // 仍然存活,不需要登录
+        //     }
+        //     else {
+        //         return -1
+        //     }
+        // } catch (error) {
+        //     console.log(error)
+        //     return -1
+        // }
+        return null
     }
-
     let wafCookie = ''
     redirect.response.headers['set-cookie'].forEach(e => {
         wafCookie += e.split(';')[0] + ';'
     })
 
-    // 开始获取新的Cookie
-    config.headers.Cookie = wafCookie
-    try {
-        config.url = redirect.response.headers['location']
-    } catch (error) {
-        console.log(error)
-        return null
-    }
+    return { cookie: wafCookie, url: redirect.response.headers['location'] }
+}
+
+async function originalAuthInterface(config, originalCookie) {
+    config.headers['User-Agent'] = campusUA.client
+    let resSomething, redirect
+    let wafCookie = config.headers.Cookie
     ;[redirect, resSomething] = await to(axios(config))
     if (resSomething) { // 失败
         console.log(resSomething)
@@ -315,44 +323,12 @@ async function originalAuthInterface(config, originalCookie, isRelogin = false) 
     return redirect.response.headers
 }
 
-async function oauth2Interface(config, originalCookie, isRelogin = false) {
-    // step1: 获取WAF Cookie
+
+
+async function oauth2Interface(config, originalCookie) {
     config.headers['User-Agent'] = campusUA.client
     let resSomething, redirect
-    ;[redirect, resSomething] = await to(axios(config))
-    if (resSomething) {
-        if (!isRelogin) {
-            console.log(resSomething)
-            return null
-        }
-
-        try {
-            if (resSomething.data.code == 0) {
-                return 0 // 仍然存活,不需要登录
-            }
-            else {
-                return -1
-            }
-        } catch (error) {
-            console.log(error)
-            return -1
-        }
-
-    }
-
-    let wafCookie = ''
-    redirect.response.headers['set-cookie'].forEach(e => {
-        wafCookie += e.split(';')[0] + ';'
-    })
-
-    // 开始获取新的Cookie
-    config.headers.Cookie = wafCookie
-    try {
-        config.url = redirect.response.headers['location']
-    } catch (error) {
-        console.log(error)
-        return null
-    }
+    let wafCookie = config.headers.Cookie
     ;[redirect, resSomething] = await to(axios(config))
     if (resSomething) { // 失败
         console.log(resSomething)
