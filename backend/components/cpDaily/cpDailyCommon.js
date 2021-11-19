@@ -26,9 +26,13 @@ const cryptoInfo = {
 
     // 'dynamicKeyVersion': 'firstv',
     // 'campushoySecret': 'OXoTKvkq',
-    'dynamicKeyVersion': 'first_v2',
-    'campushoySecret': 'CCtO7fm4NygoC7yF',
-    'catSecret' : 'ytUQ7l2ZZu8mLvJZ',
+    // 'dynamicKeyVersion': 'first_v2',
+    // 'campushoySecret': 'CCtO7fm4NygoC7yF',
+    'dynamicKeyVersion': 'first_v3',
+    'campushoySecret': 'PKe4OEPdd7Axs5os',
+
+    // 'catSecret' : 'ytUQ7l2ZZu8mLvJZ', // v2(v1)
+    'catSecret' : 'SASEoK4Pa5d4SssO', // v3
 
     'md5Salt': '2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824', // 'hello'
 
@@ -52,7 +56,7 @@ const fzuAuth = {
 const headerCommon = {
     'SessionToken': '',
     'clientType': 'CPDAILY',
-    'User-Agent': 'CampusNext/9.0.12 (iPhone; iOS 13.3.1; Scale/2.00)',
+    'User-Agent': 'CampusNext/9.0.14 (iPhone; iOS 13.3.1; Scale/2.00)',
     'deviceType': '2',
     'CpdailyStandAlone': '0',
     'CacheTimeValue': '0',
@@ -66,8 +70,8 @@ const headerCommon = {
 }
 
 const campusUA = {
-    'client': 'CampusNext/9.0.12 (iPhone; iOS 13.3.1; Scale/2.00)',
-    'web': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) cpdaily/9.0.12  wisedu/9.0.12'
+    'client': 'CampusNext/9.0.14 (iPhone; iOS 13.3.1; Scale/2.00)',
+    'web': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) cpdaily/9.0.14  wisedu/9.0.14'
 }
 
 

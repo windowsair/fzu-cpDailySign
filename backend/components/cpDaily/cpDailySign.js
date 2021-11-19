@@ -17,7 +17,7 @@ async function getUnsignedTasks(cookie) {
             'Connection': 'keep-alive',
             'Accept': 'application/json, text/plain, */*',
             'X-Requested-With': 'XMLHttpRequest',
-            'User-Agent': 'CampusNext/9.0.12 (iPhone; iOS 13.3.1; Scale/2.00)',
+            'User-Agent': 'CampusNext/9.0.14 (iPhone; iOS 13.3.1; Scale/2.00)',
             'Content-Type': 'application/json',
             'Accept-Encoding': 'gzip,deflate',
             'Accept-Language': 'zh-CN,en-US;q=0.8',
@@ -41,7 +41,7 @@ async function getDetailTask(cookie, task) {
         url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/detailSignInstance`, // detailSignInstance detailSignTaskInst
         headers: {
             'Accept': 'application/json, text/plain, */*',
-            'User-Agent': 'CampusNext/9.0.12 (iPhone; iOS 13.3.1; Scale/2.00)',
+            'User-Agent': 'CampusNext/9.0.14 (iPhone; iOS 13.3.1; Scale/2.00)',
             'content-type': 'application/json',
             'Accept-Encoding': 'gzip,deflate',
             'Accept-Language': 'zh-CN,en-US;q=0.8',
@@ -67,12 +67,13 @@ function signFormFill(task, address='福州大学第二田径场', lon=119.20429
         abnormalReason: ' ', // 不在签到范围的反馈原因,可以不填
         position: address, // 注意位置的填写
         uaIsCpadaily: true,
-        // signVersion: '1.0.0', // 9.0.12废弃
+        // signVersion: '1.0.0', // 9.0.14废弃
     }
 
     let extraData = []
     //// FIXME: 下面包含一些硬编码
     if (task.isNeedExtra == 1) {
+        form.isNeedExtra = 1
         const extraField = task.extraField
 
         let resultCount = 0
@@ -122,7 +123,7 @@ function signFormFill(task, address='福州大学第二田径场', lon=119.20429
 
 
 /**
- * 将默认的表单项目转换为9.0.12接受的格式
+ * 将默认的表单项目转换为9.0.14接受的格式
  *
  * @param {Object} form 填充好的表格数据
  * @param {String} cpDailyInfo 加密过的cpDailyInfo
@@ -142,14 +143,14 @@ function getCryptForm(form, cpDailyInfo, location) {
         'bodyString': '',
         'sign': '',
         'calVersion': 'fistv',
-        'version': 'first_v2',
+        'version': 'first_v3',
     }
 
     let originalInfo =  JSON.parse(des.decrypt(cpDailyInfo, cryptoInfo.verDESKey[0x00]))
     let bodyString = aes.encrypt(JSON.stringify(form), catSecret)
 
     let strToSign = { // 按照字母升序给出, 偷懒了
-        'appVersion': '9.0.12',
+        'appVersion': '9.0.14',
         'bodyString': bodyString,
         'deviceId': originalInfo.deviceId,
         'lat': location.lat,

@@ -13,7 +13,7 @@ async function getWEU(cookieModCas) {
         url: 'http://ehall.fzu.edu.cn/qljapp/sys/itpub/MobileCommon/getMenuInfo.do',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 (5236115968)cpdaily/9.0.12  wisedu/9.0.12',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 (5236115968)cpdaily/9.0.14  wisedu/9.0.14',
             'Referer': 'http://ehall.fzu.edu.cn/qljapp/sys/lwWiseduElectronicPass/*default/index.do',
             'Cookie': cookieModCas
         },
@@ -50,7 +50,7 @@ async function getHistoryPass(cookie) {
         headers: {
             'Accept': 'application/json, text/plain, */*',
             'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 (5236115968)cpdaily/9.0.12  wisedu/9.0.12',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 (5236115968)cpdaily/9.0.14  wisedu/9.0.14',
             'Cookie': cookie
         },
         data: qs.stringify({
@@ -112,7 +112,7 @@ async function doPassRequest(info, cookie) {
             'Accept': 'application/json, text/plain, */*',
             'Content-Type': 'application/x-www-form-urlencoded',
             'Origin': 'http://ehall.fzu.edu.cn',
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 (4462986240)cpdaily/9.0.12  wisedu/9.0.12',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 (4462986240)cpdaily/9.0.14  wisedu/9.0.14',
             'Referer': 'http://ehall.fzu.edu.cn/qljapp/sys/lwWiseduElectronicPass/*default/index.do',
             'Cookie': cookie,
         },
