@@ -100,7 +100,7 @@ async function doPassRequest(info, cookie) {
         'CAMPUS': info.CAMPUS,
         'OFF_AREA': '1', // 固定值->校区所在城市
         'IN_SCHOOL_TIME': date2str(new Date(), 'yyyy-MM-dd hh:mm'),
-        'OFF_SCHOOL_TIME': `${date2str(new Date(), 'yyyy-mm-dd')} 23:59`, // 当天有效
+        'OFF_SCHOOL_TIME': `${date2str(new Date(), 'yyyy-MM-dd')} 23:59`, // 当天有效
         'RESSON': '出行'
     }
 
