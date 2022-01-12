@@ -1,6 +1,6 @@
 const { fzuAuth } = require('./cpDailyCommon')
 const { getNewCookie } = require('../cpDaily/cpDailyLogin')
-const { doSignRes } = require('./cpDailyRequest')
+const { doSignRes, getCryptForm } = require('./cpDailyRequest')
 
 const Parameter = require('parameter')
 const fs = require("fs")
@@ -38,9 +38,10 @@ async function querySubmitFormTask(cookie) {
 }
 
 // 获取schoolTaskWid
-async function getDetailCollector(cookie, collectorWid) {
+async function getDetailCollector(cookie, collectorWid, instanceWid) {
     let data = {
         collectorWid: collectorWid,
+        instanceWid: instanceWid
     }
     let config = {
         method: 'post',
@@ -54,12 +55,13 @@ async function getDetailCollector(cookie, collectorWid) {
 }
 
 // 获取具体的填写表格
-async function getDetailForm(cookie, formWid, collectorWid) {
+async function getDetailForm(cookie, formWid, collectorWid, instanceWid) {
     let data = {
         pageSize: 20,
         pageNumber: 1,
         formWid: formWid,
-        collectorWid: collectorWid
+        collectorWid: collectorWid,
+        instanceWid: instanceWid,
     }
     let config = {
         method: 'post',
@@ -79,6 +81,7 @@ function fillForm(rawForm, widInfo, locationInfo, address) {
         formWid: widInfo.formWid,
         collectWid: widInfo.collectorWid, // 这里命名比较奇怪
         schoolTaskWid: widInfo.schoolTaskWid,
+        instanceWid: widInfo.instanceWid,
 
         form: rawForm,
 
@@ -139,7 +142,7 @@ function fillForm(rawForm, widInfo, locationInfo, address) {
                 return { code: 1, msg: '表单项可能已经改变!' }
             }
             // 选择正确选项
-            item.fieldItems = [ answerObject ]
+            item.fieldItems = [answerObject]
             item.value = answerObject.itemWid
         }
         else if (item.fieldType == 7) { // 完整地址类型
@@ -207,7 +210,7 @@ async function formTask(userID, userClient, loginData, locationInfo) {
         return { code: -1, msg: '参数不正确, 请尝试重新验证手机' }
     }
     if (validateError2 != undefined) {
-        return { code: -1, msg: '请在详细设置中完善位置信息'}
+        return { code: -1, msg: '请在详细设置中完善位置信息' }
     }
 
     const cpDailyInfo = loginData.cpDailyInfo // 可用于重新获取Cookie
@@ -248,11 +251,12 @@ async function formTask(userID, userClient, loginData, locationInfo) {
 
 
     // 获取第一项填表任务
-    const collectorWid = formSubmitTask.datas.rows[0].wid
-    const formWid = formSubmitTask.datas.rows[0].formWid
+    const { wid, formWid, instanceWid } = formSubmitTask.datas.rows[0]
+    const collectorWid = wid
+
 
     // step2: 获取schoolTaskWid
-    let getSchoolTaskWidResult = await getDetailCollector(loginCookie, collectorWid)
+    let getSchoolTaskWidResult = await getDetailCollector(loginCookie, collectorWid, instanceWid)
     if (!getSchoolTaskWidResult) {
         return { code: -1, msg: '系统出错' }
     }
@@ -261,7 +265,7 @@ async function formTask(userID, userClient, loginData, locationInfo) {
 
     // step3: 获取填表任务的待填写选项
 
-    let detailFormResult = await getDetailForm(loginCookie, formWid, collectorWid)
+    let detailFormResult = await getDetailForm(loginCookie, formWid, collectorWid, instanceWid)
     if (!detailFormResult) {
         return { code: -1, msg: '系统出错' }
     }
@@ -278,7 +282,8 @@ async function formTask(userID, userClient, loginData, locationInfo) {
     const widInfo = {
         collectorWid: collectorWid,
         formWid: formWid,
-        schoolTaskWid: schoolTaskWid
+        schoolTaskWid: schoolTaskWid,
+        instanceWid: instanceWid,
     }
 
     let formFillResult = fillForm(rawForm, widInfo, locationInfo.locationInfo, locationInfo.address)
@@ -287,7 +292,7 @@ async function formTask(userID, userClient, loginData, locationInfo) {
         return { code: formFillResult.code, msg: formFillResult.msg }
     }
 
-    const formData = formFillResult.data
+    const formData = getCryptForm(formFillResult.data, loginData.cpDailyInfo, { lat: 0.0, lon: 0.0 })
 
     let submitResult = await tryToSubmit(loginCookie, cpDailyExtension, formData)
     if (!submitResult) {
@@ -295,7 +300,7 @@ async function formTask(userID, userClient, loginData, locationInfo) {
     }
 
     if (submitResult.message != 'SUCCESS') {
-        return { code: 3, msg: `填表失败,${submitResult.message}`}
+        return { code: 3, msg: `填表失败,${submitResult.message}` }
     }
 
     return { code: 0, msg: 'OK' }
