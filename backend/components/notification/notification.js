@@ -24,7 +24,7 @@ async function severChanSend(sckey, title, msg) {
             .then(response => {
                 let state = { code: 0, msg: 'OK' }
                 try {
-                    const errno = response.data.errno || response.data.code
+                    const errno = response.data.errno
                     switch (errno) {
                         case 0:
                             break
