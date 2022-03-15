@@ -17,7 +17,7 @@ async function getUnsignedTasks(cookie) {
             'Connection': 'keep-alive',
             'Accept': 'application/json, text/plain, */*',
             'X-Requested-With': 'XMLHttpRequest',
-            'User-Agent': 'CampusNext/9.0.14 (iPhone; iOS 13.3.1; Scale/2.00)',
+            'User-Agent': 'CampusNext/9.0.19 (iPhone; iOS 13.3.1; Scale/2.00)',
             'Content-Type': 'application/json',
             'Accept-Encoding': 'gzip,deflate',
             'Accept-Language': 'zh-CN,en-US;q=0.8',
@@ -41,7 +41,7 @@ async function getDetailTask(cookie, task) {
         url: `https://${fzuAuth.host}/wec-counselor-sign-apps/stu/sign/detailSignInstance`, // detailSignInstance detailSignTaskInst
         headers: {
             'Accept': 'application/json, text/plain, */*',
-            'User-Agent': 'CampusNext/9.0.14 (iPhone; iOS 13.3.1; Scale/2.00)',
+            'User-Agent': 'CampusNext/9.0.19 (iPhone; iOS 13.3.1; Scale/2.00)',
             'content-type': 'application/json',
             'Accept-Encoding': 'gzip,deflate',
             'Accept-Language': 'zh-CN,en-US;q=0.8',

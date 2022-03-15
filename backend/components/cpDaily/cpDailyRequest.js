@@ -67,7 +67,7 @@ async function doSignRes(axiosConfig) {
 
 
 /**
- * 将默认的表单项目转换为9.0.14接受的格式
+ * 将默认的表单项目转换为9.0.19接受的格式
  *
  * @param {Object} form 填充好的表格数据
  * @param {String} cpDailyInfo 加密过的cpDailyInfo
@@ -94,7 +94,7 @@ async function doSignRes(axiosConfig) {
     let bodyString = aes.encrypt(JSON.stringify(form), catSecret)
 
     let strToSign = { // 按照字母升序给出, 偷懒了
-        'appVersion': '9.0.14',
+        'appVersion': '9.0.19',
         'bodyString': bodyString,
         'deviceId': originalInfo.deviceId,
         'lat': location.lat,

@@ -56,7 +56,7 @@ const fzuAuth = {
 const headerCommon = {
     'SessionToken': '',
     'clientType': 'CPDAILY',
-    'User-Agent': 'CampusNext/9.0.14 (iPhone; iOS 13.3.1; Scale/2.00)',
+    'User-Agent': 'CampusNext/9.0.19 (iPhone; iOS 13.3.1; Scale/2.00)',
     'deviceType': '2',
     'CpdailyStandAlone': '0',
     'CacheTimeValue': '0',
@@ -70,8 +70,8 @@ const headerCommon = {
 }
 
 const campusUA = {
-    'client': 'CampusNext/9.0.14 (iPhone; iOS 13.3.1; Scale/2.00)',
-    'web': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) cpdaily/9.0.14  wisedu/9.0.14'
+    'client': 'CampusNext/9.0.19 (iPhone; iOS 13.3.1; Scale/2.00)',
+    'web': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) cpdaily/9.0.19  wisedu/9.0.19'
 }
 
 

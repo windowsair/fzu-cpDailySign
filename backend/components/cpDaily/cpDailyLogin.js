@@ -12,7 +12,7 @@ class FillExtension {
         'lon': 119.204299, // 福大的经纬度
         'lat': 26.064609,
         'model': 'iPhone10,1',
-        'appVersion': '9.0.14',
+        'appVersion': '9.0.19',
         'systemVersion': '13.3.1',
         'systemName': 'iOS',
         'userId': '', // 稍后构造, 注意大小写
@@ -237,7 +237,20 @@ async function loginGetCookie(cpDailyInfo, loginData, isRelogin = false) {
 
     // 尝试另外一种
     originalCookie = `clientType=cpdaily_student; sessionToken=${rawSessionToken}; tenantId=fzu`
-    res = await oauth2Interface({ ...config }, originalCookie)
+
+    let retryCount = 10
+    async function takeLongTime() {
+        return new Promise(resolve => {
+            setTimeout(() => resolve(''), 500)
+        })
+    }
+    do {
+        res = await oauth2Interface({ ...config }, originalCookie)
+        if (!res) {
+            await takeLongTime()
+        }
+    } while (retryCount-- && !res)
+
     return res
 }
 
@@ -374,6 +387,9 @@ async function oauth2Interface(config, originalCookie) {
         return null
     }
 
+    if (redirect.response.status == 500) {
+        return null
+    }
 
     // step4: 获取MOD_AUTH_CAS
     config.headers.Cookie = wafCookie
@@ -421,7 +437,7 @@ async function ehallGetCookie(cpDailyInfo, loginData) {
         method: 'get',
         url: `http://ehall.fzu.edu.cn/newmobile/client/userStoreAppList`,
         headers: {
-            'User-Agent': 'CampusNext/9.0.14 (iPhone; iOS 13.3.1; Scale/2.00)',
+            'User-Agent': 'CampusNext/9.0.19 (iPhone; iOS 13.3.1; Scale/2.00)',
             'CpdailyClientType': 'CPDAILY',
             'TGC': encryptTgc,
             'AmpCookies': encryptAmp,
